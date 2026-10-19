@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مطعم سين - SEEN</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&family=Aref+Ruqaa:wght@400;700&family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div id="main-page" class="page active">
+        <div class="hero-banner">
+            <div class="hero-content">
+                <div class="logo-container">
+                    <img src="logo.png" alt="SEEN" onerror="this.src='https://dummyimage.com/150x150/000/f39c12&text=SEEN';">
+                </div>
+                <h2>طعم الأصالة .. بنكهة لا تقاوم</h2>
+                <p>مطعم سين / SEEN SIRT</p>
+                
+                <div class="contact-bar">
+                    <div class="contact-item">
+                        <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                        <span class="contact-label">الهاتف:</span>
+                        <span>0935746965</span>
+                    </div>
+                    <div class="contact-divider"></div>
+                    <div class="contact-item">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                        <span class="contact-label">العنوان:</span>
+                        <span>سرت . نهاية شارع العطارين</span>
+                    </div>
+                    <div class="contact-divider"></div>
+                    <div class="contact-item">
+                        <svg viewBox="0 0 24 24"><path d="M12 2.04C6.5 2.04 2 6.53 2 12.06C2 17.06 5.66 21.21 10.44 21.96V14.96H7.9V12.06H10.44V9.85C10.44 7.34 11.93 5.96 14.22 5.96C15.31 5.96 16.45 6.15 16.45 6.15V8.62H15.19C13.95 8.62 13.56 9.39 13.56 10.18V12.06H16.34L15.89 14.96H13.56V21.96A10 10 0 0 0 22 12.06C22 6.53 17.5 2.04 12 2.04Z"/></svg>
+                        <span class="contact-label">فيسبوك:</span>
+                        <span>مطعم سين / Seen</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-sections">
+            <div class="section-card" onclick="navigateTo('food-page')">
+                <div class="real-image-icon">
+                    <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200&h=200&fit=crop" alt="Food">
+                </div>
+                <div class="section-title">قسم الطعام</div>
+                <div class="section-subtitle">طلبك لبيتك</div>
+            </div>
+
+            <div class="section-card" onclick="navigateTo('offers-page')">
+                <div class="real-image-icon">
+                    <img src="https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=200&h=200&fit=crop" alt="Gift">
+                </div>
+                <div class="section-title">قسم العروض</div>
+            </div>
+
+            <div class="section-card" onclick="navigateTo('competitions-page')">
+                <div class="real-image-icon">
+                    <div class="award-bg"></div>
+                    <svg class="award-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="goldMain" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#FFF8DC" />
+                                <stop offset="30%" stop-color="#FFD700" />
+                                <stop offset="60%" stop-color="#DAA520" />
+                                <stop offset="100%" stop-color="#8B6508" />
+                            </linearGradient>
+                            <linearGradient id="goldDark" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#8B6508" />
+                                <stop offset="100%" stop-color="#4a3500" />
+                            </linearGradient>
+                            <path id="textArc" d="M 15 50 A 35 35 0 0 1 85 50" fill="transparent" />
+                        </defs>
+                        <text font-family="'Cinzel', serif" font-size="10" font-weight="900" fill="#FFD700" stroke="#1a1a1a" stroke-width="0.5" paint-order="stroke fill">
+                            <textPath href="#textArc" startOffset="50%" text-anchor="middle">
+                                WIN WITH US
+                            </textPath>
+                        </text>
+                        <g transform="translate(50, 55) scale(0.5)">
+                            <path d="M 0 -45 L 11 -16 L 42 -16 L 17 4 L 26 36 L 0 18 L -26 36 L -17 4 L -42 -16 L -11 -16 Z" fill="url(#goldDark)" transform="translate(3, 5)" />
+                            <path d="M 0 -45 L 11 -16 L 42 -16 L 17 4 L 26 36 L 0 18 L -26 36 L -17 4 L -42 -16 L -11 -16 Z" fill="url(#goldMain)" stroke="#FFF8DC" stroke-width="2" stroke-linejoin="miter"/>
+                            <text x="0" y="15" font-family="'Cairo', sans-serif" font-size="40" font-weight="900" fill="#FFFFFF" text-anchor="middle" filter="drop-shadow(0px 3px 2px rgba(0,0,0,0.9))">1</text>
+                        </g>
+                    </svg>
+                </div>
+                <div class="section-title">المسابقات</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="food-page" class="page">
+        <div class="page-header">
+            <button class="back-btn" onclick="navigateTo('main-page')">&#8594;</button>
+            <div class="page-title">قائمة الطعام</div>
+        </div>
+
+        <div class="accordion-container">
+            <button class="accordion" style="background-image: url('https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80');">
+                <div class="acc-content">
+                    <span class="acc-title">البيتزا العادية</span>
+                    <span class="acc-badge">افتح واختر</span>
+                </div>
+            </button>
+            <div class="panel">
+                <div class="menu-item"><span class="item-name">بيتزا مارغريتا</span><span class="item-price">13 <span>د.ل</span></span></div>
+                <div class="menu-item"><span class="item-name">بيتزا خضار</span><span class="item-price">15 <span>د.ل</span></span></div>
+                <div class="menu-item"><span class="item-name">بيتزا دجاج</span><span class="item-price">19 <span>د.ل</span></span></div>
+                <div class="menu-item"><span class="item-name">بيتزا ديلوكس</span><span class="item-price">21 <span>د.ل</span></span></div>
+                <div class="menu-item"><span class="item-name">بيتزا لحم مدخن</span><span class="item-price">16 <span>د.ل</span></span></div>
+                <div class="menu-item"><span class="item-name">بيتزا تونة</span><span class="item-price">18 <span>د.ل</span></span></div>
+                <div class="menu-item"><span class="item-name">بيتزا وقفاع</span><span class="item-price">22 <span>د.ل</span></span></div>
+                <div class="menu-item"><span class="item-name">بيتزا كبدة</span><span class="item-price">17 <span>د.ل</span></span></div>
+            </div>
+
+            <button class="accordion" style="background-image: url('https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&q=80');">
+                <div class="acc-content">
+                    <span class="acc-title">البيتزا المحشية للأطراف</span>
+                    <span class="acc-badge">افتح واختر</span>
+                </div>
+            </button>
+            <div class="panel">
+                <div class="menu-item"><span class="item-name">بيتزا دجاج محشية</span><span class="item-price">24 <span>د.ل</span></span></div>
+                <div class="menu-item"><span class="item-name">بيتزا كبدة محشية</span><span class="item-price">26 <span>د.ل</span></span></div>
+                <div class="menu-item"><span class="item-name">بيتزا تونة وقفاع</span><span class="item-price">22 <span>د.ل</span></span></div>
+                <div class="menu-item"><span class="item-name">بيتزا مارغريتا محشية</span><span class="item-price">16 <span>د.ل</span></span></div>
+            </div>
+
+            <button class="accordion" style="background-image: url('https://images.unsplash.com/photo-1561651823-34feb02250e4?w=500&q=80');">
+                <div class="acc-content">
+                    <span class="acc-title">السندوتشات (برجر وشاورما)</span>
+                    <span class="acc-badge">افتح واختر</span>
+                </div>
+            </button>
+            <div class="panel">
+                <div class="menu-item"><span class="item-name">برجر عادي</span><span class="item-price">10 <span>د.ل</span></span></div>
+                <div class="menu-item"><span class="item-name">برجر دبل</span><span class="item-price">11 <span>د.ل</span></span></div>
+                <div class="menu-item"><span class="item-name">برجر ملك الجبنة</span><span class="item-price">14 <span>د.ل</span></span></div>
+                <div class="menu-item"><span class="item-name">برجر لحم</span><span class="item-price">16 <span>د.ل</span></span></div>
+                <hr style="border-color: #333; margin: 10px 0;">
+                <div class="menu-item"><span class="item-name">شاورما عادي</span><span class="item-price">13 <span>د.ل</span></span></div>
+                <div class="menu-item"><span class="item-name">شاورما صحن</span><span class="item-price">15 <span>د.ل</span></span></div>
+                <div class="menu-item"><span class="item-name">شاورما صحن سجق</span><span class="item-price">18 <span>د.ل</span></span></div>
+                <div class="menu-item"><span class="item-name">سندوتش سين</span><span class="item-price">16 <span>د.ل</span></span></div>
+            </div>
+
+            <button class="accordion" style="background-image: url('https://images.unsplash.com/photo-1544025162-d76694265947?w=500&q=80');">
+                <div class="acc-content">
+                    <span class="acc-title">الوجبات (مشاوي ودجاج)</span>
+                    <span class="acc-badge">افتح واختر</span>
+                </div>
+            </button>
+            <div class="panel">
+                <div class="menu-item"><span class="item-name">وجبة كباب إيراني</span><span class="item-price">18 <span>د.ل</span></span></div>
+                <div class="menu-item"><span class="item-name">وجبة كباب 4 أسياخ</span><span class="item-price">25 <span>د.ل</span></span></div>
+                <div class="menu-item"><span class="item-name">وجبة كباب 3 أسياخ</span><span class="item-price">35 <span>د.ل</span></span></div>
+                <div class="menu-item"><span class="item-name">وجبة شيش 4 أسياخ</span><span class="item-price">25 <span>د.ل</span></span></div>
+                <div class="menu-item"><span class="item-name">دجاجة كاملة محمرة</span><span class="item-price">50 <span>د.ل</span></span></div>
+                <div class="menu-item"><span class="item-name">نصف دجاجة محمرة</span><span class="item-price">27 <span>د.ل</span></span></div>
+                <div class="menu-item"><span class="item-name">ربع دجاجة محمرة</span><span class="item-price">20 <span>د.ل</span></span></div>
+            </div>
+
+            <button class="accordion" style="background-image: url('https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=500&q=80');">
+                <div class="acc-content">
+                    <span class="acc-title">البوكسات العائلية</span>
+                    <span class="acc-badge">افتح واختر</span>
+                </div>
+            </button>
+            <div class="panel">
+                <div class="menu-item"><span class="item-name">بوكس ليبية دجاج (4 أشخاص)</span><span class="item-price">65 <span>د.ل</span></span></div>
+                <div class="menu-item"><span class="item-name">بوكس ليبية دجاج (6 أشخاص)</span><span class="item-price">80 <span>د.ل</span></span></div>
+                <div class="menu-item"><span class="item-name">بوكس كبدة (4 أشخاص)</span><span class="item-price">75 <span>د.ل</span></span></div>
+                <div class="menu-item"><span class="item-name">بوكس معجنات مشكل (10 أشخاص)</span><span class="item-price">120 <span>د.ل</span></span></div>
+                <div class="menu-item"><span class="item-name">بوكس برجر (5 أشخاص)</span><span class="item-price">60 <span>د.ل</span></span></div>
+                <div class="menu-item"><span class="item-name">صحن مشاوي مشكل</span><span class="item-price">95 <span>د.ل</span></span></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="offers-page" class="page">
+        <div class="page-header">
+            <button class="back-btn" onclick="navigateTo('main-page')">&#8594;</button>
+            <div class="page-title">العروض</div>
+        </div>
+        <div class="empty-message">لا توجد عروض حالياً. تابعنا قريباً!</div>
+    </div>
+
+    <div id="competitions-page" class="page">
+        <div class="page-header">
+            <button class="back-btn" onclick="navigateTo('main-page')">&#8594;</button>
+            <div class="page-title">المسابقات</div>
+        </div>
+        <div class="empty-message">لا توجد مسابقات حالية. تابعنا قريباً!</div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
