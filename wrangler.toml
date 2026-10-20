@@ -1,0 +1,9 @@
+name = "seen-restaurant"
+pages_build_output_dir = "."
+compatibility_date = "2025-03-28"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "seen-menu-db"
+database_id = "7e26b6dd-5557-46ca-b1c6-0861236e0ee6"
