@@ -24,6 +24,8 @@ async function fetchData() {
         const competitions = data.competitions || [];
         const offers = data.offers || [];
 
+        // تحديث عداد الطلبات (فقط)
+        document.getElementById('dash-orders').innerText = data.todayOrdersCount || 0;
         document.getElementById('dash-items').innerText = items.length;
 
         const catBody = document.getElementById('category-table-body');
@@ -52,7 +54,6 @@ async function fetchData() {
             offersBody.innerHTML += `<tr><td>${o.text}</td><td><button class="action-btn btn-delete" onclick="deleteOffer(${o.id})">حذف</button></td></tr>`;
         });
 
-        // تعبئة بيانات الإعدادات (بدون مسح الحقول أثناء الكتابة)
         if (!document.getElementById('set-telegram-token').matches(':focus')) {
             document.getElementById('set-phone').value = settings.phone || '';
             document.getElementById('set-address').value = settings.address || '';
@@ -102,12 +103,10 @@ async function deleteOffer(id) { if(confirm('حذف العرض؟')) { const s = 
 async function closeRestaurant() { const t = document.getElementById('announcementInput').value; if (!t) { alert('اكتب سبب الإغلاق'); return; } await sendAction('update_setting', { key: 'status', value: 'closed' }); const s = await sendAction('update_setting', { key: 'announcement', value: t }); if (s) alert('✅ تم الإغلاق!'); }
 async function openRestaurant() { if(confirm('فتح المطعم؟')) { await sendAction('update_setting', { key: 'status', value: 'open' }); const s = await sendAction('update_setting', { key: 'announcement', value: '' }); if (s) alert('✅ تم الفتح!'); } }
 
-// دالة حفظ الإعدادات الجديدة (طلب واحد لكل الإعدادات)
 async function saveContactInfo() { 
     const btn = event.target;
     btn.innerText = 'جاري الحفظ...';
     btn.disabled = true;
-    
     try {
         const res = await fetch('/api/data', {
             method: 'POST',
@@ -120,17 +119,10 @@ async function saveContactInfo() {
                 telegramChatId: document.getElementById('set-telegram-chatid').value
             })
         });
-        if (res.ok) {
-            alert('✅ تم حفظ بيانات التواصل والإشعارات بنجاح!');
-        } else {
-            alert('حدث خطأ أثناء الحفظ.');
-        }
-    } catch(e) {
-        alert('حدث خطأ في الاتصال.');
-    } finally {
-        btn.innerText = 'حفظ بيانات التواصل والإشعارات';
-        btn.disabled = false;
-    }
+        if (res.ok) alert('✅ تم حفظ بيانات التواصل والإشعارات بنجاح!');
+        else alert('حدث خطأ أثناء الحفظ.');
+    } catch(e) { alert('حدث خطأ في الاتصال.'); } 
+    finally { btn.innerText = 'حفظ بيانات التواصل والإشعارات'; btn.disabled = false; }
 }
 
 function saveCredentials() { const u = document.getElementById('new-username').value; const p = document.getElementById('new-password').value; if(u && p) { localStorage.setItem('adminUser', u); localStorage.setItem('adminPass', p); currentUser = u; currentPass = p; alert('✅ تم تحديث بيانات الدخول!'); document.getElementById('new-username').value = ''; document.getElementById('new-password').value = ''; } else { alert('الرجاء كتابة البيانات.'); } }

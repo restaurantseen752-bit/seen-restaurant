@@ -13,6 +13,10 @@ export async function onRequest(context) {
             const categories = await db.prepare('SELECT * FROM categories').all();
             const offers = await db.prepare('SELECT * FROM offers WHERE is_active = 1').all();
             
+            // حساب عدد طلبات اليوم (يتصفر تلقائياً عند منتصف الليل)
+            const ordersTodayRes = await db.prepare("SELECT COUNT(*) as count FROM orders WHERE date(created_at, '+2 hours') = date('now', '+2 hours')").first();
+            const todayOrdersCount = ordersTodayRes ? ordersTodayRes.count : 0;
+
             const settingsObj = {};
             settings.results.forEach(row => settingsObj[row.key] = row.value);
 
@@ -21,7 +25,8 @@ export async function onRequest(context) {
                 settings: settingsObj, 
                 competitions: competitions.results, 
                 categories: categories.results,
-                offers: offers.results 
+                offers: offers.results,
+                todayOrdersCount: todayOrdersCount
             }), { headers });
         } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
     }
@@ -39,7 +44,7 @@ export async function onRequest(context) {
                 const chatId = settingsObj.telegramChatId;
 
                 if (!token || !chatId) {
-                    return new Response(JSON.stringify({ error: 'لم يتم إعداد بوت تلغرام في لوحة التحكم. يرجى التأكد من حفظ التوكن والآيدي.' }), { status: 400, headers });
+                    return new Response(JSON.stringify({ error: 'لم يتم إعداد بوت تلغرام.' }), { status: 400, headers });
                 }
 
                 const telegramUrl = `https://api.telegram.org/bot${token}/sendMessage`;
@@ -53,15 +58,19 @@ export async function onRequest(context) {
                     })
                 });
                 
-                const tgResponse = await response.json();
-                
-                if(response.ok) return new Response(JSON.stringify({ success: true }), { headers });
-                else return new Response(JSON.stringify({ error: 'خطأ من تلغرام: ' + tgResponse.description }), { status: 500, headers });
+                if(response.ok) {
+                    // تسجيل الطلب في قاعدة البيانات ليزيد العداد
+                    await db.prepare('INSERT INTO orders (total) VALUES (?)').bind(body.total || 0).run();
+                    return new Response(JSON.stringify({ success: true }), { headers });
+                }
+                else {
+                    const tgResponse = await response.json();
+                    return new Response(JSON.stringify({ error: 'خطأ من تلغرام: ' + tgResponse.description }), { status: 500, headers });
+                }
 
             } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
         }
 
-        // حفظ الإعدادات (إجراء جماعي)
         if (body.action === 'update_all_settings') {
             try {
                 const updates = [
