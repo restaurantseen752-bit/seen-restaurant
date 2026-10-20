@@ -51,9 +51,8 @@
             <div id="menu" class="admin-section">
                 <h1 class="header-title">إدارة الأصناف والأقسام</h1>
                 
-                <!-- إدارة الأقسام -->
                 <div style="background: var(--panel-bg); padding: 20px; border-radius: 15px; margin-bottom: 30px; border: 1px solid var(--border-color);">
-                    <h3 style="color: var(--primary); margin-bottom: 15px;">حالة الأقسام (تفعيل/إيقاف)</h3>
+                    <h3 style="color: var(--primary); margin-bottom: 15px;">حالة الأقسام (إيقاف/تفعيل)</h3>
                     <div class="table-responsive">
                         <table>
                             <thead><tr><th>القسم</th><th>الحالة</th><th>إجراء</th></tr></thead>
@@ -62,7 +61,6 @@
                     </div>
                 </div>
 
-                <!-- إضافة صنف -->
                 <div style="background: var(--panel-bg); padding: 20px; border-radius: 15px; margin-bottom: 30px; border: 1px solid var(--border-color);">
                     <h3 style="color: var(--primary); margin-bottom: 15px;">إضافة صنف جديد</h3>
                     <div class="form-group"><label>اسم الصنف</label><input type="text" id="item-name" placeholder="مثال: بيتزا زيتون"></div>
@@ -76,7 +74,6 @@
                     <button class="btn-submit" onclick="addMenuItem()">إضافة الصنف</button>
                 </div>
 
-                <!-- جدول الأصناف -->
                 <div style="margin-bottom: 15px;">
                     <select id="filter-category" onchange="fetchData()" style="width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: #fff; border-radius: 8px;">
                         <option value="all">عرض كل الأقسام</option><option>البيتزا العادية</option><option>البيتزا المحشية</option><option>السندوتشات</option><option>الوجبات</option><option>البوكسات العائلية</option>
@@ -121,16 +118,15 @@
 
             <div id="settings" class="admin-section">
                 <h1 class="header-title">إعدادات المطعم والأمان</h1>
-                
-                <h3 style="color: var(--text); margin-bottom: 15px; font-size: 18px;">معلومات التواصل (تظهر في صفحة الزبون)</h3>
+                <h3 style="color: var(--text); margin-bottom: 15px; font-size: 18px;">معلومات التواصل</h3>
                 <div class="form-group"><label>رقم الهاتف</label><input type="text" id="set-phone"></div>
                 <div class="form-group"><label>العنوان</label><input type="text" id="set-address"></div>
-                <div class="form-group"><label>رقم الواتساب (للطلبات)</label><input type="text" id="set-whatsapp"></div>
+                <div class="form-group"><label>رقم الواتساب</label><input type="text" id="set-whatsapp"></div>
                 <button class="btn-submit" onclick="saveContactInfo()">حفظ معلومات التواصل</button>
 
                 <hr style="border-color: #333; margin: 30px 0;">
 
-                <h3 style="color: var(--text); margin-bottom: 15px; font-size: 18px;">تغيير بيانات الدخول للوحة الإدارة</h3>
+                <h3 style="color: var(--text); margin-bottom: 15px; font-size: 18px;">بيانات الدخول للإدارة</h3>
                 <div class="form-group"><label>اسم المستخدم الجديد</label><input type="text" id="new-username" placeholder="اتركه فارغاً لعدم التغيير"></div>
                 <div class="form-group"><label>كلمة المرور الجديدة</label><input type="password" id="new-password" placeholder="اتركه فارغاً لعدم التغيير"></div>
                 <button class="btn-submit" onclick="saveCredentials()">حفظ بيانات الدخول</button>

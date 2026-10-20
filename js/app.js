@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const data = await res.json();
         
         currentSettings = data.settings;
-        allMenuItems = data.items;
+        allMenuItems = data.items || [];
         allCategories = data.categories || [];
 
         document.getElementById('header-phone').innerText = currentSettings.phone || '0935746965';
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             compContainer.innerHTML = `<div style="text-align: center; padding: 50px; color: #888;">لا توجد مسابقات حالياً.</div>`;
         }
 
-        renderCustomerMenu(data.items, allCategories);
+        renderCustomerMenu(allMenuItems, allCategories);
 
     } catch (e) { 
         console.error("خطأ في جلب البيانات:", e); 
@@ -57,21 +57,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function renderCustomerMenu(items, categories) {
     const container = document.getElementById('customer-menu-container');
-    const catNames = categories.map(c => c.name);
     
-    if (items.length === 0) {
-        container.innerHTML = '<p style="text-align:center; color:#fff;">لا توجد أصناف حالياً.</p>';
-        return;
+    // الأقسام الخمسة الثابتة (حتى لو كانت قاعدة البيانات فارغة)
+    let displayCategories = categories;
+    if (!displayCategories || displayCategories.length === 0) {
+        displayCategories = [
+            { name: 'البيتزا العادية', is_active: 1 },
+            { name: 'البيتزا المحشية', is_active: 1 },
+            { name: 'السندوتشات', is_active: 1 },
+            { name: 'الوجبات', is_active: 1 },
+            { name: 'البوكسات العائلية', is_active: 1 }
+        ];
     }
 
-    container.innerHTML = catNames.map(catName => {
-        const catObj = categories.find(c => c.name === catName);
-        const isActive = catObj ? catObj.is_active : 1;
+    container.innerHTML = displayCategories.map(cat => {
+        const catName = cat.name;
+        const isActive = cat.is_active;
         const catItems = items.filter(i => i.category === catName);
-        
-        if (catItems.length === 0) return ''; 
 
-        // إذا كان القسم مغلقاً
+        // إذا كان القسم مغلقاً من لوحة التحكم
         if (!isActive) {
             return `
                 <button class="accordion" onclick="alert('نعتذر منك، هذا القسم غير متوفر حالياً. يرجى اختيار قسم آخر.')">
@@ -83,11 +87,11 @@ function renderCustomerMenu(items, categories) {
             `;
         }
 
-        // إذا كان القسم مفتوحاً
+        // إذا كان القسم مفتوحاً (يعرض الأصناف)
         return `
             <button class="accordion"><div class="acc-content"><span class="acc-title">${catName}</span><span class="acc-badge">افتح واختر</span></div></button>
             <div class="panel">
-                ${catItems.map(item => `
+                ${catItems.length > 0 ? catItems.map(item => `
                     <div class="menu-item">
                         <span class="item-name">${item.name}</span>
                         <div style="display:flex; align-items:center; gap:10px;">
@@ -95,7 +99,7 @@ function renderCustomerMenu(items, categories) {
                             <button onclick="addToCart(${item.id})" style="background:#f39c12; color:#000; border:none; width:30px; height:30px; border-radius:50%; font-weight:bold; cursor:pointer;">+</button>
                         </div>
                     </div>
-                `).join('')}
+                `).join('') : '<div style="padding: 15px; color: #888; text-align: center;">لا توجد أصناف متاحة في هذا القسم حالياً.</div>'}
             </div>
         `;
     }).join('');
@@ -103,7 +107,7 @@ function renderCustomerMenu(items, categories) {
     var acc = document.getElementsByClassName("accordion");
     for (var i = 0; i < acc.length; i++) {
         acc[i].addEventListener("click", function() {
-            if(this.getAttribute('onclick')) return; // منع فتح القسم المغلق
+            if(this.getAttribute('onclick')) return; 
             this.classList.toggle("active");
             var panel = this.nextElementSibling;
             if (panel.style.maxHeight) { panel.style.maxHeight = null; panel.classList.remove("active"); } 
