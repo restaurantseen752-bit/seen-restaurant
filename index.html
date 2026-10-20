@@ -9,6 +9,9 @@
 </head>
 <body>
 
+    <!-- شريط النجاح (Toast) -->
+    <div id="toast" style="display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#2ecc71; color:white; padding:12px 24px; border-radius:30px; font-weight:bold; z-index:9999; box-shadow:0 4px 15px rgba(0,0,0,0.3); transition:opacity 0.3s;">تمت الإضافة إلى السلة!</div>
+
     <div id="main-page" class="page active">
         <div class="hero-banner">
             <div class="hero-content">
@@ -76,23 +79,21 @@
         <button onclick="openCart()" style="background:#f39c12; color:#000; border:none; padding:8px 16px; border-radius:8px; font-weight:bold; cursor:pointer;">عرض السلة 🛒</button>
     </div>
 
-    <!-- السلة -->
     <div id="cart-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:2000; justify-content:center; align-items:center; padding:15px;">
-        <div style="background:#1a1a1a; width:100%; max-width:400px; border-radius:16px; padding:20px; position:relative;">
+        <div style="background:#1a1a1a; width:100%; max-width:400px; border-radius:16px; padding:20px; position:relative; max-height:90vh; overflow-y:auto;">
             <span onclick="closeCart()" style="position:absolute; top:10px; left:15px; font-size:28px; cursor:pointer; color:#777;">&times;</span>
             <h2 style="color:#f39c12; text-align:center; margin-bottom:15px;">سلة الطلبات</h2>
-            <div id="cart-items" style="margin-bottom:15px; max-height:200px; overflow-y:auto;"></div>
-            <div style="border-top:1px solid #333; padding-top:10px; margin-bottom:15px; text-align:left; color:#fff; font-size:18px;">المجموع: <span id="modal-total">0</span> د.ل</div>
+            <div id="cart-items" style="margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:15px;"></div>
+            <div style="padding-top:10px; margin-bottom:15px; text-align:left; color:#fff; font-size:18px;">المجموع: <span id="modal-total">0</span> د.ل</div>
             <input type="text" id="customer-name" placeholder="الاسم الثلاثي" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #333; background:#222; color:#fff;">
             <input type="tel" id="customer-phone" placeholder="رقم الهاتف" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #333; background:#222; color:#fff;">
+            <input type="text" id="customer-address" placeholder="عنوان التوصيل (المنطقة، الشارع)" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #333; background:#222; color:#fff;">
             <textarea id="order-notes" placeholder="ملاحظات إضافية (بدون بصل...)" rows="2" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #333; background:#222; color:#fff;"></textarea>
             
-            <!-- الزر الجديد -->
             <button id="send-order-btn" onclick="sendOrder()" style="width:100%; background:#2ecc71; color:#fff; border:none; padding:14px; border-radius:8px; font-size:16px; font-weight:bold; cursor:pointer;">تأكيد الطلب وإرساله</button>
         </div>
     </div>
 
-    <!-- نافذة نجاح الطلب -->
     <div id="success-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:3000; justify-content:center; align-items:center; padding:15px;">
         <div style="background:#1a1a1a; border:2px solid #2ecc71; width:100%; max-width:350px; border-radius:16px; padding:30px; text-align:center;">
             <span style="font-size:50px; display:block; margin-bottom:15px;">✅</span>

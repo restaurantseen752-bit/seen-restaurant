@@ -17,6 +17,18 @@ function navigateTo(pageId) {
     window.scrollTo(0, 0);
 }
 
+// دالة إظهار الإشعار (Toast)
+function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.innerText = msg;
+    toast.style.display = 'block';
+    toast.style.opacity = '1';
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.style.display = 'none', 300);
+    }, 2000);
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         const res = await fetch('/api/data', { cache: 'no-store' });
@@ -107,7 +119,13 @@ function renderCustomerMenu(items, categories) {
 function addToCart(id) {
     const item = allMenuItems.find(i => i.id === id);
     const existing = cart.find(i => i.id === id);
-    if (existing) { existing.qty++; } else { cart.push({ ...item, qty: 1 }); }
+    if (existing) { 
+        existing.qty++; 
+        showToast(`تمت إضافة ${item.name} (الكمية: ${existing.qty})`);
+    } else { 
+        cart.push({ ...item, qty: 1 }); 
+        showToast(`تم اختيار ${item.name}`);
+    }
     updateCartUI();
 }
 
@@ -130,16 +148,16 @@ function openCart() {
 function closeCart() { document.getElementById('cart-modal').style.display = 'none'; }
 function removeFromCart(id) { cart = cart.filter(i => i.id !== id); updateCartUI(); if (cart.length === 0) closeCart(); else openCart(); }
 
-// دالة إرسال الطلب (الجديدة)
 async function sendOrder() {
     const name = document.getElementById('customer-name').value;
     const phone = document.getElementById('customer-phone').value;
+    const address = document.getElementById('customer-address').value;
     const notes = document.getElementById('order-notes').value;
 
-    if (!name || !phone) { alert('الرجاء إدخال الاسم ورقم الهاتف'); return; }
+    if (!name || !phone || !address) { alert('الرجاء إدخال الاسم ورقم الهاتف وعنوان التوصيل'); return; }
 
     const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-    let message = `*طلب جديد من مطعم سين*\n\n👤 *الاسم:* ${name}\n📞 *الهاتف:* ${phone}\n📝 *ملاحظات:* ${notes || 'لا يوجد'}\n\n*الطلبات:*\n`;
+    let message = `*طلب جديد من مطعم سين*\n\n👤 *الاسم:* ${name}\n📞 *الهاتف:* ${phone}\n📍 *العنوان:* ${address}\n📝 *ملاحظات:* ${notes || 'لا يوجد'}\n\n*الطلبات:*\n`;
     cart.forEach(item => { message += `▪️ ${item.name} (${item.qty}) - ${item.price * item.qty} د.ل\n`; });
     message += `\n💰 *المجموع:* ${total} د.ل`;
 
@@ -154,17 +172,19 @@ async function sendOrder() {
             body: JSON.stringify({ action: 'send_telegram', message: message })
         });
 
+        const data = await res.json();
+
         if (res.ok) {
             closeCart();
             document.getElementById('success-modal').style.display = 'flex';
             cart = [];
             updateCartUI();
-            // تفريغ الحقول
             document.getElementById('customer-name').value = '';
             document.getElementById('customer-phone').value = '';
+            document.getElementById('customer-address').value = '';
             document.getElementById('order-notes').value = '';
         } else {
-            alert('حدث خطأ أثناء إرسال الطلب. يرجى المحاولة لاحقاً.');
+            alert(data.error || 'حدث خطأ أثناء إرسال الطلب.');
         }
     } catch (e) {
         alert('حدث خطأ في الاتصال.');

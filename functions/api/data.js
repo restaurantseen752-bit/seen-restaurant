@@ -29,7 +29,6 @@ export async function onRequest(context) {
     if (request.method === 'POST') {
         const body = await request.json();
         
-        // ميزة إرسال تلغرام لا تحتاج كلمة مرور لأنها تأتي من الزبون
         if (body.action === 'send_telegram') {
             try {
                 const settings = await db.prepare('SELECT * FROM settings WHERE key IN ("telegramToken", "telegramChatId")').all();
@@ -40,7 +39,7 @@ export async function onRequest(context) {
                 const chatId = settingsObj.telegramChatId;
 
                 if (!token || !chatId) {
-                    return new Response(JSON.stringify({ error: 'لم يتم إعداد بوت تلغرام في لوحة التحكم' }), { status: 400, headers });
+                    return new Response(JSON.stringify({ error: 'لم يتم إعداد بوت تلغرام في لوحة التحكم. يرجى التأكد من حفظ التوكن والآيدي.' }), { status: 400, headers });
                 }
 
                 const telegramUrl = `https://api.telegram.org/bot${token}/sendMessage`;
@@ -54,13 +53,30 @@ export async function onRequest(context) {
                     })
                 });
                 
+                const tgResponse = await response.json();
+                
                 if(response.ok) return new Response(JSON.stringify({ success: true }), { headers });
-                else return new Response(JSON.stringify({ error: 'فشل الإرسال لتلغرام' }), { status: 500, headers });
+                else return new Response(JSON.stringify({ error: 'خطأ من تلغرام: ' + tgResponse.description }), { status: 500, headers });
 
             } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
         }
 
-        // باقي إجراءات المدير (محمية بكلمة مرور)
+        // حفظ الإعدادات (إجراء جماعي)
+        if (body.action === 'update_all_settings') {
+            try {
+                const updates = [
+                    { key: 'phone', value: body.phone },
+                    { key: 'address', value: body.address },
+                    { key: 'telegramToken', value: body.telegramToken },
+                    { key: 'telegramChatId', value: body.telegramChatId }
+                ];
+                for (let u of updates) {
+                    await db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').bind(u.key, u.value).run();
+                }
+                return new Response(JSON.stringify({ success: true }), { headers });
+            } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
+        }
+
         const ADMIN_PASS = "123456"; 
         if (body.password !== ADMIN_PASS) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
 

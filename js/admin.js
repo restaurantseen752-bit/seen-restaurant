@@ -52,11 +52,13 @@ async function fetchData() {
             offersBody.innerHTML += `<tr><td>${o.text}</td><td><button class="action-btn btn-delete" onclick="deleteOffer(${o.id})">حذف</button></td></tr>`;
         });
 
-        // تعبئة بيانات الإعدادات
-        document.getElementById('set-phone').value = settings.phone || '';
-        document.getElementById('set-address').value = settings.address || '';
-        document.getElementById('set-telegram-token').value = settings.telegramToken || '';
-        document.getElementById('set-telegram-chatid').value = settings.telegramChatId || '';
+        // تعبئة بيانات الإعدادات (بدون مسح الحقول أثناء الكتابة)
+        if (!document.getElementById('set-telegram-token').matches(':focus')) {
+            document.getElementById('set-phone').value = settings.phone || '';
+            document.getElementById('set-address').value = settings.address || '';
+            document.getElementById('set-telegram-token').value = settings.telegramToken || '';
+            document.getElementById('set-telegram-chatid').value = settings.telegramChatId || '';
+        }
 
         const isClosed = settings.status === 'closed';
         document.getElementById('dashboard-status-text').innerText = isClosed ? 'مغلق' : 'مفتوح';
@@ -99,13 +101,38 @@ async function addOffer() { const t = document.getElementById('offer-text').valu
 async function deleteOffer(id) { if(confirm('حذف العرض؟')) { const s = await sendAction('delete_offer', { id }); if (s) alert('✅ تم الحذف!'); } }
 async function closeRestaurant() { const t = document.getElementById('announcementInput').value; if (!t) { alert('اكتب سبب الإغلاق'); return; } await sendAction('update_setting', { key: 'status', value: 'closed' }); const s = await sendAction('update_setting', { key: 'announcement', value: t }); if (s) alert('✅ تم الإغلاق!'); }
 async function openRestaurant() { if(confirm('فتح المطعم؟')) { await sendAction('update_setting', { key: 'status', value: 'open' }); const s = await sendAction('update_setting', { key: 'announcement', value: '' }); if (s) alert('✅ تم الفتح!'); } }
+
+// دالة حفظ الإعدادات الجديدة (طلب واحد لكل الإعدادات)
 async function saveContactInfo() { 
-    await sendAction('update_setting', { key: 'phone', value: document.getElementById('set-phone').value }); 
-    await sendAction('update_setting', { key: 'address', value: document.getElementById('set-address').value }); 
-    await sendAction('update_setting', { key: 'telegramToken', value: document.getElementById('set-telegram-token').value }); 
-    const s = await sendAction('update_setting', { key: 'telegramChatId', value: document.getElementById('set-telegram-chatid').value }); 
-    if (s) alert('✅ تم حفظ بيانات التواصل والإشعارات!'); 
+    const btn = event.target;
+    btn.innerText = 'جاري الحفظ...';
+    btn.disabled = true;
+    
+    try {
+        const res = await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                action: 'update_all_settings',
+                phone: document.getElementById('set-phone').value,
+                address: document.getElementById('set-address').value,
+                telegramToken: document.getElementById('set-telegram-token').value,
+                telegramChatId: document.getElementById('set-telegram-chatid').value
+            })
+        });
+        if (res.ok) {
+            alert('✅ تم حفظ بيانات التواصل والإشعارات بنجاح!');
+        } else {
+            alert('حدث خطأ أثناء الحفظ.');
+        }
+    } catch(e) {
+        alert('حدث خطأ في الاتصال.');
+    } finally {
+        btn.innerText = 'حفظ بيانات التواصل والإشعارات';
+        btn.disabled = false;
+    }
 }
+
 function saveCredentials() { const u = document.getElementById('new-username').value; const p = document.getElementById('new-password').value; if(u && p) { localStorage.setItem('adminUser', u); localStorage.setItem('adminPass', p); currentUser = u; currentPass = p; alert('✅ تم تحديث بيانات الدخول!'); document.getElementById('new-username').value = ''; document.getElementById('new-password').value = ''; } else { alert('الرجاء كتابة البيانات.'); } }
 async function addCompetition() { const t = document.getElementById('comp-title').value; const p = document.getElementById('comp-prize').value; const d = document.getElementById('comp-duration').value; if (t && p && d) { const s = await sendAction('add_competition', { title: t, prize: p, duration: d }); if (s) { document.getElementById('comp-title').value = ''; document.getElementById('comp-prize').value = ''; document.getElementById('comp-duration').value = ''; alert('✅ تمت الإضافة!'); } } else { alert('املأ الحقول'); } }
 async function deleteComp(id) { if (confirm('حذف؟')) { const s = await sendAction('delete_competition', { id }); if (s) alert('✅ تم الحذف!'); } }
