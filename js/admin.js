@@ -17,15 +17,19 @@ async function fetchData() {
         const res = await fetch('/api/data', { cache: 'no-store' });
         const data = await res.json();
         
-        if(!data || !data.items) return;
+        if(!data) return;
+        const items = data.items || [];
+        const categories = data.categories || [];
+        const settings = data.settings || {};
+        const competitions = data.competitions || [];
+        const offers = data.offers || [];
 
-        document.getElementById('dash-items').innerText = data.items.length;
+        document.getElementById('dash-items').innerText = items.length;
 
-        // الأقسام
         const catBody = document.getElementById('category-table-body');
         catBody.innerHTML = '';
-        if (data.categories) {
-            data.categories.forEach(cat => {
+        if (categories.length > 0) {
+            categories.forEach(cat => {
                 catBody.innerHTML += `
                     <tr>
                         <td>${cat.name}</td>
@@ -40,55 +44,55 @@ async function fetchData() {
                     </tr>
                 `;
             });
+        } else {
+            catBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">لم يتم العثور على أقسام.</td></tr>';
         }
 
-        // الأصناف
         const filter = document.getElementById('filter-category').value;
-        const items = filter === 'all' ? data.items : data.items.filter(i => i.category === filter);
+        const filteredItems = filter === 'all' ? items : items.filter(i => i.category === filter);
         const tbody = document.getElementById('menu-table-body');
-        tbody.innerHTML = items.length ? '' : '<tr><td colspan="4" style="text-align:center;">لا توجد أصناف.</td></tr>';
-        items.forEach(item => {
+        tbody.innerHTML = filteredItems.length ? '' : '<tr><td colspan="4" style="text-align:center;">لا توجد أصناف.</td></tr>';
+        filteredItems.forEach(item => {
             tbody.innerHTML += `<tr><td>${item.name}</td><td>${item.price} د.ل</td><td>${item.category}</td>
             <td><button class="action-btn btn-edit" onclick="editMenuItem(${item.id}, '${item.name}', ${item.price})">تعديل</button>
             <button class="action-btn btn-delete" onclick="deleteMenuItem(${item.id})">حذف</button></td></tr>`;
         });
 
-        // الإعدادات والعروض
-        document.getElementById('set-phone').value = data.settings.phone || '';
-        document.getElementById('set-address').value = data.settings.address || '';
-        document.getElementById('set-whatsapp').value = data.settings.whatsapp || '';
-        document.getElementById('offer-text').value = data.settings.offer || '';
-        document.getElementById('current-offer-display').innerHTML = data.settings.offer ? `<strong>✅ العرض الحالي:</strong><br>${data.settings.offer}` : 'لا يوجد عرض.';
+        const offersBody = document.getElementById('offers-table-body');
+        offersBody.innerHTML = offers.length ? '' : '<tr><td colspan="2" style="text-align:center;">لا توجد عروض.</td></tr>';
+        offers.forEach(o => {
+            offersBody.innerHTML += `<tr><td>${o.text}</td>
+            <td><button class="action-btn btn-delete" onclick="deleteOffer(${o.id})">حذف</button></td></tr>`;
+        });
 
-        const isClosed = data.settings.status === 'closed';
+        document.getElementById('set-phone').value = settings.phone || '';
+        document.getElementById('set-address').value = settings.address || '';
+        document.getElementById('set-whatsapp').value = settings.whatsapp || '';
+
+        const isClosed = settings.status === 'closed';
         document.getElementById('dashboard-status-text').innerText = isClosed ? 'مغلق' : 'مفتوح';
         document.getElementById('dashboard-status-text').style.color = isClosed ? 'var(--danger)' : 'var(--success)';
         document.getElementById('status-indicator').innerText = isClosed ? '🔴 مغلق' : '🟢 مفتوح';
         document.getElementById('status-indicator').style.color = isClosed ? 'var(--danger)' : 'var(--success)';
-        document.getElementById('announcementInput').value = data.settings.announcement || '';
+        document.getElementById('announcementInput').value = settings.announcement || '';
         document.getElementById('btn-close-rest').style.display = isClosed ? 'none' : 'block';
         document.getElementById('btn-open-rest').style.display = isClosed ? 'block' : 'none';
 
-        // المسابقات
         const compBody = document.getElementById('comp-table-body');
-        if (data.competitions && data.competitions.length > 0) {
-            compBody.innerHTML = '';
-            data.competitions.forEach(c => {
-                compBody.innerHTML += `
-                    <tr>
-                        <td>${c.title}</td><td>${c.prize}</td><td>${c.duration}</td><td>${c.winner || 'لم يحدد'}</td>
-                        <td>
-                            <button class="action-btn btn-edit" onclick="setWinner(${c.id})" title="إعلان الفائز">🏆</button>
-                            <button class="action-btn btn-delete" onclick="deleteComp(${c.id})" title="حذف">🗑️</button>
-                        </td>
-                    </tr>
-                `;
-            });
-        } else {
-            compBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">لا توجد مسابقات.</td></tr>';
-        }
+        compBody.innerHTML = competitions.length ? '' : '<tr><td colspan="5" style="text-align:center;">لا توجد مسابقات.</td></tr>';
+        competitions.forEach(c => {
+            compBody.innerHTML += `
+                <tr>
+                    <td>${c.title}</td><td>${c.prize}</td><td>${c.duration}</td><td>${c.winner || 'لم يحدد'}</td>
+                    <td>
+                        <button class="action-btn btn-edit" onclick="setWinner(${c.id})" title="إعلان الفائز">🏆</button>
+                        <button class="action-btn btn-delete" onclick="deleteComp(${c.id})" title="حذف">🗑️</button>
+                    </td>
+                </tr>
+            `;
+        });
 
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error(e); alert('حدث خطأ في جلب البيانات'); }
 }
 
 async function sendAction(action, payload) {
@@ -124,8 +128,13 @@ async function addMenuItem() {
 async function deleteMenuItem(id) { if (confirm('حذف الصنف؟')) { const s = await sendAction('delete_item', { id }); if (s) alert('✅ تم حذف الصنف!'); } }
 async function editMenuItem(id, name, price) { let p = prompt(`السعر الجديد لـ ${name}:`, price); if (p) { const s = await sendAction('update_item', { id, price: p }); if (s) alert('✅ تم التعديل!'); } }
 
-async function saveOffer() { const s = await sendAction('update_setting', { key: 'offer', value: document.getElementById('offer-text').value }); if (s) alert('✅ تم حفظ العرض!'); }
-async function clearOffer() { if(confirm('إلغاء العرض؟')) { const s = await sendAction('update_setting', { key: 'offer', value: '' }); if (s) alert('✅ تم الإلغاء!'); } }
+async function addOffer() {
+    const text = document.getElementById('offer-text').value;
+    if (!text) { alert('اكتب نص العرض'); return; }
+    const s = await sendAction('add_offer', { text });
+    if (s) { document.getElementById('offer-text').value = ''; alert('✅ تمت إضافة العرض!'); }
+}
+async function deleteOffer(id) { if(confirm('حذف العرض؟')) { const s = await sendAction('delete_offer', { id }); if (s) alert('✅ تم حذف العرض!'); } }
 
 async function closeRestaurant() { const text = document.getElementById('announcementInput').value; if (!text) { alert('اكتب سبب الإغلاق'); return; } await sendAction('update_setting', { key: 'status', value: 'closed' }); const s = await sendAction('update_setting', { key: 'announcement', value: text }); if (s) alert('✅ تم الإغلاق!'); }
 async function openRestaurant() { if(confirm('فتح المطعم؟')) { await sendAction('update_setting', { key: 'status', value: 'open' }); const s = await sendAction('update_setting', { key: 'announcement', value: '' }); if (s) alert('✅ تم الفتح!'); } }

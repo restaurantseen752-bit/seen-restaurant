@@ -3,6 +3,14 @@ let allMenuItems = [];
 let allCategories = [];
 let cart = [];
 
+const categoryImages = {
+    'البيتزا العادية': 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80',
+    'البيتزا المحشية': 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&q=80',
+    'السندوتشات': 'https://images.unsplash.com/photo-1561651823-34feb02250e4?w=500&q=80',
+    'الوجبات': 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&q=80',
+    'البوكسات العائلية': 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=500&q=80'
+};
+
 function navigateTo(pageId) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(pageId).classList.add('active');
@@ -14,9 +22,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const res = await fetch('/api/data', { cache: 'no-store' });
         const data = await res.json();
         
-        currentSettings = data.settings;
+        currentSettings = data.settings || {};
         allMenuItems = data.items || [];
         allCategories = data.categories || [];
+        const offers = data.offers || [];
 
         document.getElementById('header-phone').innerText = currentSettings.phone || '0935746965';
         document.getElementById('header-address').innerText = currentSettings.address || 'سرت';
@@ -27,8 +36,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         const offersContainer = document.getElementById('customer-offers-container');
-        if (currentSettings.offer) {
-            offersContainer.innerHTML = `<div style="background: linear-gradient(145deg, #1f1f1f, #141414); border: 2px solid #f39c12; border-radius: 15px; padding: 30px 20px; text-align: center;"><span style="font-size: 40px; display: block; margin-bottom: 15px;">🎁</span><h2 style="color: #f39c12; margin-bottom: 15px;">عرض خاص!</h2><p style="font-size: 18px; color: #fff;">${currentSettings.offer}</p></div>`;
+        if (offers.length > 0) {
+            offersContainer.innerHTML = offers.map(o => `
+                <div style="background: linear-gradient(145deg, #1f1f1f, #141414); border: 2px solid #f39c12; border-radius: 15px; padding: 20px; margin-bottom: 15px; text-align: center;">
+                    <span style="font-size: 30px; display: block; margin-bottom: 10px;">🎁</span>
+                    <p style="font-size: 16px; color: #fff; margin:0;">${o.text}</p>
+                </div>
+            `).join('');
         } else {
             offersContainer.innerHTML = `<div style="text-align: center; padding: 50px; color: #888;">لا توجد عروض حالياً.</div>`;
         }
@@ -58,7 +72,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 function renderCustomerMenu(items, categories) {
     const container = document.getElementById('customer-menu-container');
     
-    // الأقسام الخمسة الثابتة (حتى لو كانت قاعدة البيانات فارغة)
     let displayCategories = categories;
     if (!displayCategories || displayCategories.length === 0) {
         displayCategories = [
@@ -74,11 +87,12 @@ function renderCustomerMenu(items, categories) {
         const catName = cat.name;
         const isActive = cat.is_active;
         const catItems = items.filter(i => i.category === catName);
+        const bgImage = categoryImages[catName] || categoryImages['البيتزا العادية'];
 
-        // إذا كان القسم مغلقاً من لوحة التحكم
         if (!isActive) {
             return `
-                <button class="accordion" onclick="alert('نعتذر منك، هذا القسم غير متوفر حالياً. يرجى اختيار قسم آخر.')">
+                <button class="accordion" onclick="alert('نعتذر منك، هذا القسم غير متوفر حالياً. يرجى اختيار قسم آخر.')" 
+                        style="background-image: url('${bgImage}');">
                     <div class="acc-content">
                         <span class="acc-title">${catName}</span>
                         <span class="acc-badge" style="background:#e74c3c; color:#fff; border-color:#e74c3c;">غير متوفر حالياً</span>
@@ -87,9 +101,13 @@ function renderCustomerMenu(items, categories) {
             `;
         }
 
-        // إذا كان القسم مفتوحاً (يعرض الأصناف)
         return `
-            <button class="accordion"><div class="acc-content"><span class="acc-title">${catName}</span><span class="acc-badge">افتح واختر</span></div></button>
+            <button class="accordion" style="background-image: url('${bgImage}');">
+                <div class="acc-content">
+                    <span class="acc-title">${catName}</span>
+                    <span class="acc-badge">افتح واختر</span>
+                </div>
+            </button>
             <div class="panel">
                 ${catItems.length > 0 ? catItems.map(item => `
                     <div class="menu-item">

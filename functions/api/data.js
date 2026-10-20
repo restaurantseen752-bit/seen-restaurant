@@ -10,11 +10,19 @@ export async function onRequest(context) {
             const items = await db.prepare('SELECT * FROM items').all();
             const settings = await db.prepare('SELECT * FROM settings').all();
             const competitions = await db.prepare('SELECT * FROM competitions WHERE status = "active"').all();
+            const categories = await db.prepare('SELECT * FROM categories').all();
+            const offers = await db.prepare('SELECT * FROM offers WHERE is_active = 1').all();
             
             const settingsObj = {};
             settings.results.forEach(row => settingsObj[row.key] = row.value);
 
-            return new Response(JSON.stringify({ items: items.results, settings: settingsObj, competitions: competitions.results }), { headers });
+            return new Response(JSON.stringify({ 
+                items: items.results, 
+                settings: settingsObj, 
+                competitions: competitions.results, 
+                categories: categories.results,
+                offers: offers.results 
+            }), { headers });
         } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
     }
 
@@ -28,7 +36,11 @@ export async function onRequest(context) {
             else if (body.action === 'delete_item') await db.prepare('DELETE FROM items WHERE id = ?').bind(body.id).run();
             else if (body.action === 'update_item') await db.prepare('UPDATE items SET price = ? WHERE id = ?').bind(body.price, body.id).run();
             else if (body.action === 'update_setting') await db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').bind(body.key, body.value).run();
+            else if (body.action === 'toggle_category') await db.prepare('UPDATE categories SET is_active = ? WHERE name = ?').bind(body.is_active, body.name).run();
             
+            else if (body.action === 'add_offer') await db.prepare('INSERT INTO offers (text) VALUES (?)').bind(body.text).run();
+            else if (body.action === 'delete_offer') await db.prepare('DELETE FROM offers WHERE id = ?').bind(body.id).run();
+
             else if (body.action === 'add_competition') await db.prepare('INSERT INTO competitions (title, prize, duration) VALUES (?, ?, ?)').bind(body.title, body.prize, body.duration).run();
             else if (body.action === 'delete_competition') await db.prepare('DELETE FROM competitions WHERE id = ?').bind(body.id).run();
             else if (body.action === 'set_winner') await db.prepare('UPDATE competitions SET winner = ?, status = "finished" WHERE id = ?').bind(body.winner, body.id).run();
