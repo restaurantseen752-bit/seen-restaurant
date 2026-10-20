@@ -9,7 +9,8 @@ export async function onRequest(context) {
         try {
             const items = await db.prepare('SELECT * FROM items').all();
             const settings = await db.prepare('SELECT * FROM settings').all();
-            const competitions = await db.prepare('SELECT * FROM competitions WHERE status = "active"').all();
+            // جلب جميع المسابقات (سواء النشطة أو المنتهية)
+            const competitions = await db.prepare('SELECT * FROM competitions').all();
             const categories = await db.prepare('SELECT * FROM categories').all();
             const offers = await db.prepare('SELECT * FROM offers WHERE is_active = 1').all();
             
@@ -43,6 +44,7 @@ export async function onRequest(context) {
 
             else if (body.action === 'add_competition') await db.prepare('INSERT INTO competitions (title, prize, duration) VALUES (?, ?, ?)').bind(body.title, body.prize, body.duration).run();
             else if (body.action === 'delete_competition') await db.prepare('DELETE FROM competitions WHERE id = ?').bind(body.id).run();
+            // تحديث الفائز وحالة المسابقة إلى منتهية
             else if (body.action === 'set_winner') await db.prepare('UPDATE competitions SET winner = ?, status = "finished" WHERE id = ?').bind(body.winner, body.id).run();
 
             return new Response(JSON.stringify({ success: true }), { headers });

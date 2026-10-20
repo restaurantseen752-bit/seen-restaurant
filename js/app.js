@@ -49,14 +49,32 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const compContainer = document.getElementById('customer-comp-container');
         if (data.competitions && data.competitions.length > 0) {
-            compContainer.innerHTML = data.competitions.map(c => `
-                <div style="background: #1f1f1f; border: 1px solid #f39c12; border-radius: 12px; padding: 20px; margin-bottom: 15px; text-align: center;">
-                    <h3 style="color: #f39c12; margin-bottom: 10px;">🏆 ${c.title}</h3>
-                    <p style="color: #fff; margin-bottom: 5px;">الجائزة: <strong>${c.prize}</strong></p>
-                    <p style="color: #aaa; font-size: 14px;">المدة: ${c.duration}</p>
-                    ${c.winner ? `<p style="color: #2ecc71; font-weight: bold; margin-top: 10px;">🎉 الفائز: ${c.winner}</p>` : ''}
-                </div>
-            `).join('');
+            compContainer.innerHTML = data.competitions.map(c => {
+                // إذا كانت هناك مسابقة ولها فائز (منتهية)
+                if (c.winner) {
+                    return `
+                        <div style="background: linear-gradient(145deg, #1f1f1f, #141414); border: 2px solid #2ecc71; border-radius: 15px; padding: 20px; margin-bottom: 15px; text-align: center; position: relative; overflow: hidden;">
+                            <div style="position: absolute; top: 10px; right: -30px; background: #2ecc71; color: #fff; padding: 5px 40px; transform: rotate(45deg); font-weight: bold; font-size: 12px;">منتهية</div>
+                            <h3 style="color: #f39c12; margin-bottom: 10px;">🏆 ${c.title}</h3>
+                            <p style="color: #fff; margin-bottom: 5px;">الجائزة: <strong>${c.prize}</strong></p>
+                            <p style="color: #aaa; font-size: 14px; margin-bottom: 15px;">المدة: ${c.duration}</p>
+                            <div style="background: rgba(46, 204, 113, 0.1); border: 1px dashed #2ecc71; border-radius: 10px; padding: 15px;">
+                                <p style="color: #2ecc71; font-size: 18px; font-weight: bold; margin: 0;">🎉 الفائز: ${c.winner}</p>
+                                <p style="color: #ccc; font-size: 13px; margin-top: 5px;">ألف مبروك! سيتم التواصل معك لتسليم الجائزة.</p>
+                            </div>
+                        </div>
+                    `;
+                }
+                // إذا كانت المسابقة مستمرة
+                return `
+                    <div style="background: #1f1f1f; border: 1px solid #f39c12; border-radius: 12px; padding: 20px; margin-bottom: 15px; text-align: center;">
+                        <h3 style="color: #f39c12; margin-bottom: 10px;">🔥 ${c.title}</h3>
+                        <p style="color: #fff; margin-bottom: 5px;">الجائزة: <strong>${c.prize}</strong></p>
+                        <p style="color: #aaa; font-size: 14px;">المدة: ${c.duration}</p>
+                        <p style="color: #f39c12; font-size: 13px; margin-top: 10px; font-weight: bold;">⏳ المسابقة مستمرة.. شارك الآن!</p>
+                    </div>
+                `;
+            }).join('');
         } else {
             compContainer.innerHTML = `<div style="text-align: center; padding: 50px; color: #888;">لا توجد مسابقات حالياً.</div>`;
         }

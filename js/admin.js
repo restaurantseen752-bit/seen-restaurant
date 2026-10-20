@@ -44,8 +44,6 @@ async function fetchData() {
                     </tr>
                 `;
             });
-        } else {
-            catBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">لم يتم العثور على أقسام.</td></tr>';
         }
 
         const filter = document.getElementById('filter-category').value;
@@ -81,11 +79,15 @@ async function fetchData() {
         const compBody = document.getElementById('comp-table-body');
         compBody.innerHTML = competitions.length ? '' : '<tr><td colspan="5" style="text-align:center;">لا توجد مسابقات.</td></tr>';
         competitions.forEach(c => {
+            const isFinished = c.status === 'finished';
             compBody.innerHTML += `
-                <tr>
-                    <td>${c.title}</td><td>${c.prize}</td><td>${c.duration}</td><td>${c.winner || 'لم يحدد'}</td>
+                <tr style="background-color: ${isFinished ? 'rgba(46, 204, 113, 0.1)' : 'transparent'};">
+                    <td>${c.title} ${isFinished ? '(منتهية)' : ''}</td>
+                    <td>${c.prize}</td>
+                    <td>${c.duration}</td>
+                    <td>${c.winner || 'لم يحدد'}</td>
                     <td>
-                        <button class="action-btn btn-edit" onclick="setWinner(${c.id})" title="إعلان الفائز">🏆</button>
+                        ${!isFinished ? `<button class="action-btn btn-edit" onclick="setWinner(${c.id})" title="إعلان الفائز">🏆</button>` : ''}
                         <button class="action-btn btn-delete" onclick="deleteComp(${c.id})" title="حذف">🗑️</button>
                     </td>
                 </tr>
@@ -166,8 +168,8 @@ async function addCompetition() {
         if (s) { document.getElementById('comp-title').value = ''; document.getElementById('comp-prize').value = ''; document.getElementById('comp-duration').value = ''; alert('✅ تمت الإضافة!'); } 
     } else { alert('املأ الحقول'); } 
 }
-async function deleteComp(id) { if (confirm('حذف؟')) { const s = await sendAction('delete_competition', { id }); if (s) alert('✅ تم الحذف!'); } }
-async function setWinner(id) { let w = prompt('اسم الفائز:'); if (w) { const s = await sendAction('set_winner', { id, winner: w }); if (s) alert('✅ تم تسجيل الفائز!'); } }
+async function deleteComp(id) { if (confirm('حذف المسابقة نهائياً؟')) { const s = await sendAction('delete_competition', { id }); if (s) alert('✅ تم الحذف!'); } }
+async function setWinner(id) { let w = prompt('اسم الفائز:'); if (w) { const s = await sendAction('set_winner', { id, winner: w }); if (s) alert('✅ تم تسجيل الفائز وإغلاق المسابقة!'); } }
 
 function showSection(id, el) { document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('.sidebar a').forEach(l => l.classList.remove('active')); el.classList.add('active'); if (window.innerWidth <= 768) closeMenu(); }
 function openMenu() { document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('active'); }
