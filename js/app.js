@@ -50,30 +50,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const compContainer = document.getElementById('customer-comp-container');
         if (data.competitions && data.competitions.length > 0) {
             compContainer.innerHTML = data.competitions.map(c => {
-                // إذا كانت هناك مسابقة ولها فائز (منتهية)
                 if (c.winner) {
-                    return `
-                        <div style="background: linear-gradient(145deg, #1f1f1f, #141414); border: 2px solid #2ecc71; border-radius: 15px; padding: 20px; margin-bottom: 15px; text-align: center; position: relative; overflow: hidden;">
-                            <div style="position: absolute; top: 10px; right: -30px; background: #2ecc71; color: #fff; padding: 5px 40px; transform: rotate(45deg); font-weight: bold; font-size: 12px;">منتهية</div>
-                            <h3 style="color: #f39c12; margin-bottom: 10px;">🏆 ${c.title}</h3>
-                            <p style="color: #fff; margin-bottom: 5px;">الجائزة: <strong>${c.prize}</strong></p>
-                            <p style="color: #aaa; font-size: 14px; margin-bottom: 15px;">المدة: ${c.duration}</p>
-                            <div style="background: rgba(46, 204, 113, 0.1); border: 1px dashed #2ecc71; border-radius: 10px; padding: 15px;">
-                                <p style="color: #2ecc71; font-size: 18px; font-weight: bold; margin: 0;">🎉 الفائز: ${c.winner}</p>
-                                <p style="color: #ccc; font-size: 13px; margin-top: 5px;">ألف مبروك! سيتم التواصل معك لتسليم الجائزة.</p>
-                            </div>
-                        </div>
-                    `;
+                    return `<div style="background: linear-gradient(145deg, #1f1f1f, #141414); border: 2px solid #2ecc71; border-radius: 15px; padding: 20px; margin-bottom: 15px; text-align: center; position: relative; overflow: hidden;"><div style="position: absolute; top: 10px; right: -30px; background: #2ecc71; color: #fff; padding: 5px 40px; transform: rotate(45deg); font-weight: bold; font-size: 12px;">منتهية</div><h3 style="color: #f39c12; margin-bottom: 10px;">🏆 ${c.title}</h3><p style="color: #fff; margin-bottom: 5px;">الجائزة: <strong>${c.prize}</strong></p><p style="color: #aaa; font-size: 14px; margin-bottom: 15px;">المدة: ${c.duration}</p><div style="background: rgba(46, 204, 113, 0.1); border: 1px dashed #2ecc71; border-radius: 10px; padding: 15px;"><p style="color: #2ecc71; font-size: 18px; font-weight: bold; margin: 0;">🎉 الفائز: ${c.winner}</p></div></div>`;
                 }
-                // إذا كانت المسابقة مستمرة
-                return `
-                    <div style="background: #1f1f1f; border: 1px solid #f39c12; border-radius: 12px; padding: 20px; margin-bottom: 15px; text-align: center;">
-                        <h3 style="color: #f39c12; margin-bottom: 10px;">🔥 ${c.title}</h3>
-                        <p style="color: #fff; margin-bottom: 5px;">الجائزة: <strong>${c.prize}</strong></p>
-                        <p style="color: #aaa; font-size: 14px;">المدة: ${c.duration}</p>
-                        <p style="color: #f39c12; font-size: 13px; margin-top: 10px; font-weight: bold;">⏳ المسابقة مستمرة.. شارك الآن!</p>
-                    </div>
-                `;
+                return `<div style="background: #1f1f1f; border: 1px solid #f39c12; border-radius: 12px; padding: 20px; margin-bottom: 15px; text-align: center;"><h3 style="color: #f39c12; margin-bottom: 10px;">🔥 ${c.title}</h3><p style="color: #fff; margin-bottom: 5px;">الجائزة: <strong>${c.prize}</strong></p><p style="color: #aaa; font-size: 14px;">المدة: ${c.duration}</p><p style="color: #f39c12; font-size: 13px; margin-top: 10px; font-weight: bold;">⏳ المسابقة مستمرة.. شارك الآن!</p></div>`;
             }).join('');
         } else {
             compContainer.innerHTML = `<div style="text-align: center; padding: 50px; color: #888;">لا توجد مسابقات حالياً.</div>`;
@@ -82,62 +62,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderCustomerMenu(allMenuItems, allCategories);
 
     } catch (e) { 
-        console.error("خطأ في جلب البيانات:", e); 
+        console.error("خطأ:", e); 
         document.getElementById('customer-menu-container').innerHTML = '<p style="text-align:center; color:#fff;">عذراً، حدث خطأ في تحميل القائمة.</p>';
     }
 });
 
 function renderCustomerMenu(items, categories) {
     const container = document.getElementById('customer-menu-container');
-    
     let displayCategories = categories;
     if (!displayCategories || displayCategories.length === 0) {
-        displayCategories = [
-            { name: 'البيتزا العادية', is_active: 1 },
-            { name: 'البيتزا المحشية', is_active: 1 },
-            { name: 'السندوتشات', is_active: 1 },
-            { name: 'الوجبات', is_active: 1 },
-            { name: 'البوكسات العائلية', is_active: 1 }
-        ];
+        displayCategories = [{ name: 'البيتزا العادية', is_active: 1 },{ name: 'البيتزا المحشية', is_active: 1 },{ name: 'السندوتشات', is_active: 1 },{ name: 'الوجبات', is_active: 1 },{ name: 'البوكسات العائلية', is_active: 1 }];
     }
 
     container.innerHTML = displayCategories.map(cat => {
-        const catName = cat.name;
-        const isActive = cat.is_active;
+        const catName = cat.name; const isActive = cat.is_active;
         const catItems = items.filter(i => i.category === catName);
         const bgImage = categoryImages[catName] || categoryImages['البيتزا العادية'];
 
         if (!isActive) {
-            return `
-                <button class="accordion" onclick="alert('نعتذر منك، هذا القسم غير متوفر حالياً. يرجى اختيار قسم آخر.')" 
-                        style="background-image: url('${bgImage}');">
-                    <div class="acc-content">
-                        <span class="acc-title">${catName}</span>
-                        <span class="acc-badge" style="background:#e74c3c; color:#fff; border-color:#e74c3c;">غير متوفر حالياً</span>
-                    </div>
-                </button>
-            `;
+            return `<button class="accordion" onclick="alert('نعتذر منك، هذا القسم غير متوفر حالياً.')" style="background-image: url('${bgImage}');"><div class="acc-content"><span class="acc-title">${catName}</span><span class="acc-badge" style="background:#e74c3c; color:#fff; border-color:#e74c3c;">غير متوفر حالياً</span></div></button>`;
         }
 
-        return `
-            <button class="accordion" style="background-image: url('${bgImage}');">
-                <div class="acc-content">
-                    <span class="acc-title">${catName}</span>
-                    <span class="acc-badge">افتح واختر</span>
-                </div>
-            </button>
-            <div class="panel">
-                ${catItems.length > 0 ? catItems.map(item => `
-                    <div class="menu-item">
-                        <span class="item-name">${item.name}</span>
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <span class="item-price">${item.price} <span>د.ل</span></span>
-                            <button onclick="addToCart(${item.id})" style="background:#f39c12; color:#000; border:none; width:30px; height:30px; border-radius:50%; font-weight:bold; cursor:pointer;">+</button>
-                        </div>
-                    </div>
-                `).join('') : '<div style="padding: 15px; color: #888; text-align: center;">لا توجد أصناف متاحة في هذا القسم حالياً.</div>'}
-            </div>
-        `;
+        return `<button class="accordion" style="background-image: url('${bgImage}');"><div class="acc-content"><span class="acc-title">${catName}</span><span class="acc-badge">افتح واختر</span></div></button>
+            <div class="panel">${catItems.length > 0 ? catItems.map(item => `<div class="menu-item"><span class="item-name">${item.name}</span><div style="display:flex; align-items:center; gap:10px;"><span class="item-price">${item.price} <span>د.ل</span></span><button onclick="addToCart(${item.id})" style="background:#f39c12; color:#000; border:none; width:30px; height:30px; border-radius:50%; font-weight:bold; cursor:pointer;">+</button></div></div>`).join('') : '<div style="padding: 15px; color: #888; text-align: center;">لا توجد أصناف متاحة في هذا القسم حالياً.</div>'}</div>`;
     }).join('');
 
     var acc = document.getElementsByClassName("accordion");
@@ -176,35 +123,53 @@ function updateCartUI() {
 
 function openCart() {
     const container = document.getElementById('cart-items');
-    container.innerHTML = cart.map(item => `
-        <div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #333; padding-bottom:8px;">
-            <div><strong style="color:#fff;">${item.name}</strong><br><span style="color:#aaa; font-size:12px;">${item.qty} × ${item.price} د.ل</span></div>
-            <button onclick="removeFromCart(${item.id})" style="background:#e74c3c; color:#fff; border:none; padding:4px 8px; border-radius:5px; cursor:pointer;">حذف</button>
-        </div>
-    `).join('');
+    container.innerHTML = cart.map(item => `<div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #333; padding-bottom:8px;"><div><strong style="color:#fff;">${item.name}</strong><br><span style="color:#aaa; font-size:12px;">${item.qty} × ${item.price} د.ل</span></div><button onclick="removeFromCart(${item.id})" style="background:#e74c3c; color:#fff; border:none; padding:4px 8px; border-radius:5px; cursor:pointer;">حذف</button></div>`).join('');
     document.getElementById('cart-modal').style.display = 'flex';
 }
 
 function closeCart() { document.getElementById('cart-modal').style.display = 'none'; }
+function removeFromCart(id) { cart = cart.filter(i => i.id !== id); updateCartUI(); if (cart.length === 0) closeCart(); else openCart(); }
 
-function removeFromCart(id) {
-    cart = cart.filter(i => i.id !== id);
-    updateCartUI();
-    if (cart.length === 0) closeCart(); else openCart();
-}
-
-function sendWhatsAppOrder() {
+// دالة إرسال الطلب (الجديدة)
+async function sendOrder() {
     const name = document.getElementById('customer-name').value;
     const phone = document.getElementById('customer-phone').value;
     const notes = document.getElementById('order-notes').value;
+
     if (!name || !phone) { alert('الرجاء إدخال الاسم ورقم الهاتف'); return; }
+
     const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
     let message = `*طلب جديد من مطعم سين*\n\n👤 *الاسم:* ${name}\n📞 *الهاتف:* ${phone}\n📝 *ملاحظات:* ${notes || 'لا يوجد'}\n\n*الطلبات:*\n`;
     cart.forEach(item => { message += `▪️ ${item.name} (${item.qty}) - ${item.price * item.qty} د.ل\n`; });
     message += `\n💰 *المجموع:* ${total} د.ل`;
-    const waNumber = currentSettings.whatsapp || '218935746965'; 
-    window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`, '_blank');
-    cart = [];
-    updateCartUI();
-    closeCart();
+
+    const btn = document.getElementById('send-order-btn');
+    btn.innerText = 'جاري الإرسال...';
+    btn.disabled = true;
+
+    try {
+        const res = await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'send_telegram', message: message })
+        });
+
+        if (res.ok) {
+            closeCart();
+            document.getElementById('success-modal').style.display = 'flex';
+            cart = [];
+            updateCartUI();
+            // تفريغ الحقول
+            document.getElementById('customer-name').value = '';
+            document.getElementById('customer-phone').value = '';
+            document.getElementById('order-notes').value = '';
+        } else {
+            alert('حدث خطأ أثناء إرسال الطلب. يرجى المحاولة لاحقاً.');
+        }
+    } catch (e) {
+        alert('حدث خطأ في الاتصال.');
+    } finally {
+        btn.innerText = 'تأكيد الطلب وإرساله';
+        btn.disabled = false;
+    }
 }

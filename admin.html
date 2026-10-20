@@ -6,6 +6,14 @@
     <title>صفحة Admin - مطعم سين</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/admin.css">
+    <style>
+        /* تنسيق بسيط للبردية (details) */
+        details { background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 15px; margin-bottom: 20px; overflow: hidden; }
+        summary { padding: 20px; font-size: 18px; font-weight: 800; color: var(--primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+        summary::after { content: '▼'; font-size: 14px; transition: 0.3s; }
+        details[open] summary::after { transform: rotate(180deg); }
+        .details-content { padding: 0 20px 20px 20px; border-top: 1px solid #333; }
+    </style>
 </head>
 <body>
     <div class="login-overlay" id="login-screen">
@@ -50,35 +58,18 @@
 
             <div id="menu" class="admin-section">
                 <h1 class="header-title">إدارة الأصناف والأقسام</h1>
-                
                 <div style="background: var(--panel-bg); padding: 20px; border-radius: 15px; margin-bottom: 30px; border: 1px solid var(--border-color);">
                     <h3 style="color: var(--primary); margin-bottom: 15px;">حالة الأقسام (إيقاف/تفعيل)</h3>
-                    <div class="table-responsive">
-                        <table>
-                            <thead><tr><th>القسم</th><th>الحالة</th><th>إجراء</th></tr></thead>
-                            <tbody id="category-table-body"></tbody>
-                        </table>
-                    </div>
+                    <div class="table-responsive"><table><thead><tr><th>القسم</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody id="category-table-body"></tbody></table></div>
                 </div>
-
                 <div style="background: var(--panel-bg); padding: 20px; border-radius: 15px; margin-bottom: 30px; border: 1px solid var(--border-color);">
                     <h3 style="color: var(--primary); margin-bottom: 15px;">إضافة صنف جديد</h3>
                     <div class="form-group"><label>اسم الصنف</label><input type="text" id="item-name" placeholder="مثال: بيتزا زيتون"></div>
                     <div class="form-group"><label>السعر (د.ل)</label><input type="number" id="item-price" placeholder="15"></div>
-                    <div class="form-group">
-                        <label>القسم</label>
-                        <select id="item-category">
-                            <option>البيتزا العادية</option><option>البيتزا المحشية</option><option>السندوتشات</option><option>الوجبات</option><option>البوكسات العائلية</option>
-                        </select>
-                    </div>
+                    <div class="form-group"><label>القسم</label><select id="item-category"><option>البيتزا العادية</option><option>البيتزا المحشية</option><option>السندوتشات</option><option>الوجبات</option><option>البوكسات العائلية</option></select></div>
                     <button class="btn-submit" onclick="addMenuItem()">إضافة الصنف</button>
                 </div>
-
-                <div style="margin-bottom: 15px;">
-                    <select id="filter-category" onchange="fetchData()" style="width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: #fff; border-radius: 8px;">
-                        <option value="all">عرض كل الأقسام</option><option>البيتزا العادية</option><option>البيتزا المحشية</option><option>السندوتشات</option><option>الوجبات</option><option>البوكسات العائلية</option>
-                    </select>
-                </div>
+                <div style="margin-bottom: 15px;"><select id="filter-category" onchange="fetchData()" style="width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: #fff; border-radius: 8px;"><option value="all">عرض كل الأقسام</option><option>البيتزا العادية</option><option>البيتزا المحشية</option><option>السندوتشات</option><option>الوجبات</option><option>البوكسات العائلية</option></select></div>
                 <div class="table-responsive"><table><thead><tr><th>الصنف</th><th>السعر</th><th>القسم</th><th>إجراءات</th></tr></thead><tbody id="menu-table-body"></tbody></table></div>
             </div>
 
@@ -88,12 +79,7 @@
                     <div class="form-group"><label>نص العرض الجديد</label><textarea id="offer-text" rows="3" placeholder="اكتب العرض هنا..."></textarea></div>
                     <button class="btn-submit" onclick="addOffer()">إضافة العرض</button>
                 </div>
-                <div class="table-responsive">
-                    <table>
-                        <thead><tr><th>العرض</th><th>إجراء</th></tr></thead>
-                        <tbody id="offers-table-body"></tbody>
-                    </table>
-                </div>
+                <div class="table-responsive"><table><thead><tr><th>العرض</th><th>إجراء</th></tr></thead><tbody id="offers-table-body"></tbody></table></div>
             </div>
 
             <div id="status" class="admin-section">
@@ -114,29 +100,38 @@
                     <div class="form-group"><label>المدة</label><input type="text" id="comp-duration" placeholder="مثال: أسبوع"></div>
                     <button class="btn-submit" onclick="addCompetition()">إضافة مسابقة</button>
                 </div>
-                <div class="table-responsive">
-                    <table>
-                        <thead><tr><th>المسابقة</th><th>الجائزة</th><th>المدة</th><th>الفائز</th><th>إجراءات</th></tr></thead>
-                        <tbody id="comp-table-body"></tbody>
-                    </table>
-                </div>
+                <div class="table-responsive"><table><thead><tr><th>المسابقة</th><th>الجائزة</th><th>المدة</th><th>الفائز</th><th>إجراءات</th></tr></thead><tbody id="comp-table-body"></tbody></table></div>
             </div>
 
+            <!-- قسم الإعدادات الجديد -->
             <div id="settings" class="admin-section">
-                <h1 class="header-title">إعدادات المطعم والأمان</h1>
-                <h3 style="color: var(--text); margin-bottom: 15px; font-size: 18px;">معلومات التواصل</h3>
-                <div class="form-group"><label>رقم الهاتف</label><input type="text" id="set-phone"></div>
-                <div class="form-group"><label>العنوان</label><input type="text" id="set-address"></div>
-                <div class="form-group"><label>رقم الواتساب</label><input type="text" id="set-whatsapp"></div>
-                <button class="btn-submit" onclick="saveContactInfo()">حفظ معلومات التواصل</button>
+                <h1 class="header-title">الإعدادات</h1>
+                
+                <!-- القسم الأول (بيانات التواصل والإشعارات) -->
+                <details>
+                    <summary>بيانات التواصل والإشعارات</summary>
+                    <div class="details-content">
+                        <div class="form-group"><label>رقم الهاتف</label><input type="text" id="set-phone"></div>
+                        <div class="form-group"><label>العنوان</label><input type="text" id="set-address"></div>
+                        <hr style="border-color: #333; margin: 20px 0;">
+                        <h4 style="color: var(--text-muted); margin-bottom: 10px;">إعدادات بوت تلغرام (لاستقبال الطلبات)</h4>
+                        <div class="form-group"><label>توكن البوت (Bot Token)</label><input type="text" id="set-telegram-token" placeholder="مثال: 123456:ABC-DEF..."></div>
+                        <div class="form-group"><label>معرف المحادثة (Chat ID)</label><input type="text" id="set-telegram-chatid" placeholder="مثال: 123456789"></div>
+                        <button class="btn-submit" onclick="saveContactInfo()">حفظ بيانات التواصل والإشعارات</button>
+                    </div>
+                </details>
 
-                <hr style="border-color: #333; margin: 30px 0;">
-
-                <h3 style="color: var(--text); margin-bottom: 15px; font-size: 18px;">بيانات الدخول للإدارة</h3>
-                <div class="form-group"><label>اسم المستخدم الجديد</label><input type="text" id="new-username" placeholder="اتركه فارغاً لعدم التغيير"></div>
-                <div class="form-group"><label>كلمة المرور الجديدة</label><input type="password" id="new-password" placeholder="اتركه فارغاً لعدم التغيير"></div>
-                <button class="btn-submit" onclick="saveCredentials()">حفظ بيانات الدخول</button>
+                <!-- القسم الثاني (بيانات الدخول) -->
+                <details>
+                    <summary>بيانات الدخول للإدارة</summary>
+                    <div class="details-content">
+                        <div class="form-group"><label>اسم المستخدم الجديد</label><input type="text" id="new-username" placeholder="اتركه فارغاً لعدم التغيير"></div>
+                        <div class="form-group"><label>كلمة المرور الجديدة</label><input type="password" id="new-password" placeholder="اتركه فارغاً لعدم التغيير"></div>
+                        <button class="btn-submit" onclick="saveCredentials()">حفظ بيانات الدخول</button>
+                    </div>
+                </details>
             </div>
+            
         </div>
     </div>
     <script src="js/admin.js"></script>

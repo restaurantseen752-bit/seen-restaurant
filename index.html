@@ -29,8 +29,7 @@
             </div>
         </div>
 
-        <!-- شريط إعلان الإغلاق -->
-        <div id="maintenanceBanner" style="display:none; background:#c0392b; color:white; text-align:center; padding:12px; font-weight:bold; box-shadow:0 0 15px #e74c3c;">
+        <div id="maintenanceBanner" style="display:none; background:#c0392b; color:white; text-align:center; padding:12px; font-weight:bold;">
             🚨 <span id="announcementText"></span> 🚨
         </div>
 
@@ -57,35 +56,27 @@
         </div>
     </div>
 
-    <!-- صفحة الطعام -->
     <div id="food-page" class="page">
-        <div class="page-header">
-            <button class="back-btn" onclick="navigateTo('main-page')">&#8594;</button><div class="page-title">قائمة الطعام</div>
-        </div>
-        <div class="accordion-container" id="customer-menu-container">
-            <!-- سيتم تعبئتها ديناميكياً من API -->
-        </div>
+        <div class="page-header"><button class="back-btn" onclick="navigateTo('main-page')">&#8594;</button><div class="page-title">قائمة الطعام</div></div>
+        <div class="accordion-container" id="customer-menu-container"></div>
     </div>
 
-    <!-- صفحة العروض -->
     <div id="offers-page" class="page">
         <div class="page-header"><button class="back-btn" onclick="navigateTo('main-page')">&#8594;</button><div class="page-title">العروض</div></div>
         <div id="customer-offers-container" style="padding: 20px;"></div>
     </div>
 
-    <!-- صفحة المسابقات -->
     <div id="competitions-page" class="page">
         <div class="page-header"><button class="back-btn" onclick="navigateTo('main-page')">&#8594;</button><div class="page-title">المسابقات</div></div>
         <div id="customer-comp-container" style="padding: 20px;"></div>
     </div>
 
-    <!-- شريط السلة السفلي -->
     <div id="cart-bar" style="display:none; position:fixed; bottom:0; left:0; right:0; background:#1a1a1a; border-top:2px solid #f39c12; padding:15px; z-index:1000; justify-content:space-between; align-items:center;">
         <div style="color:#fff; font-weight:bold;"><span id="cart-count">0</span> أصناف | <span id="cart-total">0</span> د.ل</div>
         <button onclick="openCart()" style="background:#f39c12; color:#000; border:none; padding:8px 16px; border-radius:8px; font-weight:bold; cursor:pointer;">عرض السلة 🛒</button>
     </div>
 
-    <!-- نافذة السلة (Modal) -->
+    <!-- السلة -->
     <div id="cart-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:2000; justify-content:center; align-items:center; padding:15px;">
         <div style="background:#1a1a1a; width:100%; max-width:400px; border-radius:16px; padding:20px; position:relative;">
             <span onclick="closeCart()" style="position:absolute; top:10px; left:15px; font-size:28px; cursor:pointer; color:#777;">&times;</span>
@@ -95,7 +86,19 @@
             <input type="text" id="customer-name" placeholder="الاسم الثلاثي" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #333; background:#222; color:#fff;">
             <input type="tel" id="customer-phone" placeholder="رقم الهاتف" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #333; background:#222; color:#fff;">
             <textarea id="order-notes" placeholder="ملاحظات إضافية (بدون بصل...)" rows="2" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #333; background:#222; color:#fff;"></textarea>
-            <button onclick="sendWhatsAppOrder()" style="width:100%; background:#25D366; color:#fff; border:none; padding:14px; border-radius:8px; font-size:16px; font-weight:bold; cursor:pointer;">تأكيد الطلب عبر واتساب</button>
+            
+            <!-- الزر الجديد -->
+            <button id="send-order-btn" onclick="sendOrder()" style="width:100%; background:#2ecc71; color:#fff; border:none; padding:14px; border-radius:8px; font-size:16px; font-weight:bold; cursor:pointer;">تأكيد الطلب وإرساله</button>
+        </div>
+    </div>
+
+    <!-- نافذة نجاح الطلب -->
+    <div id="success-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:3000; justify-content:center; align-items:center; padding:15px;">
+        <div style="background:#1a1a1a; border:2px solid #2ecc71; width:100%; max-width:350px; border-radius:16px; padding:30px; text-align:center;">
+            <span style="font-size:50px; display:block; margin-bottom:15px;">✅</span>
+            <h2 style="color:#2ecc71; margin-bottom:10px;">تم إرسال طلبك!</h2>
+            <p style="color:#fff; margin-bottom:20px;">جاري تجهيز طلبك الآن. شكراً لثقتك بنا.</p>
+            <button onclick="document.getElementById('success-modal').style.display='none'" style="background:#f39c12; color:#000; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer;">حسناً</button>
         </div>
     </div>
 

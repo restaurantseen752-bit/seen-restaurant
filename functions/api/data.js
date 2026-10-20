@@ -9,7 +9,6 @@ export async function onRequest(context) {
         try {
             const items = await db.prepare('SELECT * FROM items').all();
             const settings = await db.prepare('SELECT * FROM settings').all();
-            // جلب جميع المسابقات (سواء النشطة أو المنتهية)
             const competitions = await db.prepare('SELECT * FROM competitions').all();
             const categories = await db.prepare('SELECT * FROM categories').all();
             const offers = await db.prepare('SELECT * FROM offers WHERE is_active = 1').all();
@@ -29,6 +28,39 @@ export async function onRequest(context) {
 
     if (request.method === 'POST') {
         const body = await request.json();
+        
+        // ميزة إرسال تلغرام لا تحتاج كلمة مرور لأنها تأتي من الزبون
+        if (body.action === 'send_telegram') {
+            try {
+                const settings = await db.prepare('SELECT * FROM settings WHERE key IN ("telegramToken", "telegramChatId")').all();
+                const settingsObj = {};
+                settings.results.forEach(row => settingsObj[row.key] = row.value);
+
+                const token = settingsObj.telegramToken;
+                const chatId = settingsObj.telegramChatId;
+
+                if (!token || !chatId) {
+                    return new Response(JSON.stringify({ error: 'لم يتم إعداد بوت تلغرام في لوحة التحكم' }), { status: 400, headers });
+                }
+
+                const telegramUrl = `https://api.telegram.org/bot${token}/sendMessage`;
+                const response = await fetch(telegramUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: chatId,
+                        text: body.message,
+                        parse_mode: 'Markdown'
+                    })
+                });
+                
+                if(response.ok) return new Response(JSON.stringify({ success: true }), { headers });
+                else return new Response(JSON.stringify({ error: 'فشل الإرسال لتلغرام' }), { status: 500, headers });
+
+            } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
+        }
+
+        // باقي إجراءات المدير (محمية بكلمة مرور)
         const ADMIN_PASS = "123456"; 
         if (body.password !== ADMIN_PASS) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
 
@@ -44,7 +76,6 @@ export async function onRequest(context) {
 
             else if (body.action === 'add_competition') await db.prepare('INSERT INTO competitions (title, prize, duration) VALUES (?, ?, ?)').bind(body.title, body.prize, body.duration).run();
             else if (body.action === 'delete_competition') await db.prepare('DELETE FROM competitions WHERE id = ?').bind(body.id).run();
-            // تحديث الفائز وحالة المسابقة إلى منتهية
             else if (body.action === 'set_winner') await db.prepare('UPDATE competitions SET winner = ?, status = "finished" WHERE id = ?').bind(body.winner, body.id).run();
 
             return new Response(JSON.stringify({ success: true }), { headers });
