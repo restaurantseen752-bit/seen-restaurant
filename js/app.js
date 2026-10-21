@@ -162,7 +162,8 @@ function openCart() {
 function closeCart() { document.getElementById('cart-modal').style.display = 'none'; }
 
 function removeFromCart(id) { 
-    cart = cart.filter(i => i.id !== id); 
+    // إصلاح المقارنة لتعمل مع الأرقام والنصوص
+    cart = cart.filter(i => String(i.id) !== String(id)); 
     updateCartUI(); 
     if (cart.length === 0) closeCart(); 
     else openCart(); 
@@ -170,7 +171,8 @@ function removeFromCart(id) {
 
 async function sendOrder() {
     const name = document.getElementById('customer-name').value;
-    const phone = document.getElementById('customer-phone').value;
+    // تنظيف رقم الهاتف من أي مسافات أو رموز للحفاظ على الأرقام فقط
+    const phone = document.getElementById('customer-phone').value.replace(/[^0-9+]/g, ''); 
     const address = document.getElementById('customer-address').value;
     const notes = document.getElementById('order-notes').value;
 
