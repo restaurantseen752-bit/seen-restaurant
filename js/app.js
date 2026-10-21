@@ -17,7 +17,6 @@ function navigateTo(pageId) {
     window.scrollTo(0, 0);
 }
 
-// دالة إظهار الإشعار (Toast)
 function showToast(msg) {
     const toast = document.getElementById('toast');
     toast.innerText = msg;
@@ -52,7 +51,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             offersContainer.innerHTML = offers.map(o => `
                 <div style="background: linear-gradient(145deg, #1f1f1f, #141414); border: 2px solid #f39c12; border-radius: 15px; padding: 20px; margin-bottom: 15px; text-align: center;">
                     <span style="font-size: 30px; display: block; margin-bottom: 10px;">🎁</span>
-                    <p style="font-size: 16px; color: #fff; margin:0;">${o.text}</p>
+                    <p style="font-size: 16px; color: #fff; margin:0 0 10px 0;">${o.text}</p>
+                    <div style="font-size: 22px; font-weight: bold; color: #f39c12; margin-bottom: 15px;">${o.price} د.ل</div>
+                    <button onclick="addOfferToCart(${o.id}, '${o.text.replace(/'/g, "\\'")}', ${o.price})" style="background:#2ecc71; color:#fff; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:16px;">اغتنم الفرصة</button>
                 </div>
             `).join('');
         } else {
@@ -129,6 +130,19 @@ function addToCart(id) {
     updateCartUI();
 }
 
+function addOfferToCart(id, name, price) {
+    const offerId = 'offer_' + id;
+    const existing = cart.find(i => i.id === offerId);
+    if (existing) {
+        existing.qty++;
+        showToast(`تمت إضافة ${name} (الكمية: ${existing.qty})`);
+    } else {
+        cart.push({ id: offerId, name: name, price: price, qty: 1 });
+        showToast(`تم اختيار العرض: ${name}`);
+    }
+    updateCartUI();
+}
+
 function updateCartUI() {
     const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
     const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
@@ -141,12 +155,18 @@ function updateCartUI() {
 
 function openCart() {
     const container = document.getElementById('cart-items');
-    container.innerHTML = cart.map(item => `<div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #333; padding-bottom:8px;"><div><strong style="color:#fff;">${item.name}</strong><br><span style="color:#aaa; font-size:12px;">${item.qty} × ${item.price} د.ل</span></div><button onclick="removeFromCart(${item.id})" style="background:#e74c3c; color:#fff; border:none; padding:4px 8px; border-radius:5px; cursor:pointer;">حذف</button></div>`).join('');
+    container.innerHTML = cart.map(item => `<div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #333; padding-bottom:8px;"><div><strong style="color:#fff;">${item.name}</strong><br><span style="color:#aaa; font-size:12px;">${item.qty} × ${item.price} د.ل</span></div><button onclick="removeFromCart('${item.id}')" style="background:#e74c3c; color:#fff; border:none; padding:4px 8px; border-radius:5px; cursor:pointer;">حذف</button></div>`).join('');
     document.getElementById('cart-modal').style.display = 'flex';
 }
 
 function closeCart() { document.getElementById('cart-modal').style.display = 'none'; }
-function removeFromCart(id) { cart = cart.filter(i => i.id !== id); updateCartUI(); if (cart.length === 0) closeCart(); else openCart(); }
+
+function removeFromCart(id) { 
+    cart = cart.filter(i => i.id !== id); 
+    updateCartUI(); 
+    if (cart.length === 0) closeCart(); 
+    else openCart(); 
+}
 
 async function sendOrder() {
     const name = document.getElementById('customer-name').value;
@@ -169,7 +189,7 @@ async function sendOrder() {
         const res = await fetch('/api/data', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'send_telegram', message: message })
+            body: JSON.stringify({ action: 'send_telegram', message: message, total: total })
         });
 
         const data = await res.json();
