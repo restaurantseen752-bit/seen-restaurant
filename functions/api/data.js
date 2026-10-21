@@ -13,7 +13,6 @@ export async function onRequest(context) {
             const categories = await db.prepare('SELECT * FROM categories').all();
             const offers = await db.prepare('SELECT * FROM offers WHERE is_active = 1').all();
             
-            // حساب عدد طلبات اليوم (يتصفر تلقائياً عند منتصف الليل)
             const ordersTodayRes = await db.prepare("SELECT COUNT(*) as count FROM orders WHERE date(created_at, '+2 hours') = date('now', '+2 hours')").first();
             const todayOrdersCount = ordersTodayRes ? ordersTodayRes.count : 0;
 
@@ -21,12 +20,8 @@ export async function onRequest(context) {
             settings.results.forEach(row => settingsObj[row.key] = row.value);
 
             return new Response(JSON.stringify({ 
-                items: items.results, 
-                settings: settingsObj, 
-                competitions: competitions.results, 
-                categories: categories.results,
-                offers: offers.results,
-                todayOrdersCount: todayOrdersCount
+                items: items.results, settings: settingsObj, competitions: competitions.results, categories: categories.results,
+                offers: offers.results, todayOrdersCount: todayOrdersCount
             }), { headers });
         } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
     }
@@ -43,41 +38,29 @@ export async function onRequest(context) {
                 const token = settingsObj.telegramToken;
                 const chatId = settingsObj.telegramChatId;
 
-                if (!token || !chatId) {
-                    return new Response(JSON.stringify({ error: 'لم يتم إعداد بوت تلغرام.' }), { status: 400, headers });
-                }
+                if (!token || !chatId) return new Response(JSON.stringify({ error: 'لم يتم إعداد بوت تلغرام.' }), { status: 400, headers });
 
                 const telegramUrl = `https://api.telegram.org/bot${token}/sendMessage`;
                 const response = await fetch(telegramUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: chatId,
-                        text: body.message,
-                        parse_mode: 'Markdown'
-                    })
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: chatId, text: body.message, parse_mode: 'Markdown' })
                 });
                 
                 if(response.ok) {
-                    // تسجيل الطلب في قاعدة البيانات ليزيد العداد
                     await db.prepare('INSERT INTO orders (total) VALUES (?)').bind(body.total || 0).run();
                     return new Response(JSON.stringify({ success: true }), { headers });
-                }
-                else {
+                } else {
                     const tgResponse = await response.json();
                     return new Response(JSON.stringify({ error: 'خطأ من تلغرام: ' + tgResponse.description }), { status: 500, headers });
                 }
-
             } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
         }
 
         if (body.action === 'update_all_settings') {
             try {
                 const updates = [
-                    { key: 'phone', value: body.phone },
-                    { key: 'address', value: body.address },
-                    { key: 'telegramToken', value: body.telegramToken },
-                    { key: 'telegramChatId', value: body.telegramChatId }
+                    { key: 'phone', value: body.phone }, { key: 'address', value: body.address },
+                    { key: 'telegramToken', value: body.telegramToken }, { key: 'telegramChatId', value: body.telegramChatId }
                 ];
                 for (let u of updates) {
                     await db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').bind(u.key, u.value).run();
@@ -96,7 +79,8 @@ export async function onRequest(context) {
             else if (body.action === 'update_setting') await db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').bind(body.key, body.value).run();
             else if (body.action === 'toggle_category') await db.prepare('UPDATE categories SET is_active = ? WHERE name = ?').bind(body.is_active, body.name).run();
             
-            else if (body.action === 'add_offer') await db.prepare('INSERT INTO offers (text) VALUES (?)').bind(body.text).run();
+            // التعديل: إضافة السعر
+            else if (body.action === 'add_offer') await db.prepare('INSERT INTO offers (text, price) VALUES (?, ?)').bind(body.text, body.price).run();
             else if (body.action === 'delete_offer') await db.prepare('DELETE FROM offers WHERE id = ?').bind(body.id).run();
 
             else if (body.action === 'add_competition') await db.prepare('INSERT INTO competitions (title, prize, duration) VALUES (?, ?, ?)').bind(body.title, body.prize, body.duration).run();
