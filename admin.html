@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/admin.css">
     <style>
-        /* تنسيق بسيط للبردية (details) */
         details { background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 15px; margin-bottom: 20px; overflow: hidden; }
         summary { padding: 20px; font-size: 18px; font-weight: 800; color: var(--primary); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
         summary::after { content: '▼'; font-size: 14px; transition: 0.3s; }
@@ -77,7 +76,8 @@
                 <h1 class="header-title">إدارة العروض</h1>
                 <div style="background: var(--panel-bg); padding: 20px; border-radius: 15px; margin-bottom: 30px; border: 1px solid var(--border-color);">
                     <div class="form-group"><label>نص العرض الجديد</label><textarea id="offer-text" rows="3" placeholder="اكتب العرض هنا..."></textarea></div>
-<div class="form-group"><label>سعر العرض (د.ل)</label><input type="number" id="offer-price" placeholder="مثال: 50"></div>
+                    <!-- حقل السعر المضاف هنا -->
+                    <div class="form-group"><label>سعر العرض (د.ل)</label><input type="number" id="offer-price" placeholder="مثال: 50"></div>
                     <button class="btn-submit" onclick="addOffer()">إضافة العرض</button>
                 </div>
                 <div class="table-responsive"><table><thead><tr><th>العرض</th><th>إجراء</th></tr></thead><tbody id="offers-table-body"></tbody></table></div>
@@ -104,35 +104,29 @@
                 <div class="table-responsive"><table><thead><tr><th>المسابقة</th><th>الجائزة</th><th>المدة</th><th>الفائز</th><th>إجراءات</th></tr></thead><tbody id="comp-table-body"></tbody></table></div>
             </div>
 
-            <!-- قسم الإعدادات الجديد -->
             <div id="settings" class="admin-section">
                 <h1 class="header-title">الإعدادات</h1>
-                
-                <!-- القسم الأول (بيانات التواصل والإشعارات) -->
                 <details>
                     <summary>بيانات التواصل والإشعارات</summary>
                     <div class="details-content">
                         <div class="form-group"><label>رقم الهاتف</label><input type="text" id="set-phone"></div>
                         <div class="form-group"><label>العنوان</label><input type="text" id="set-address"></div>
                         <hr style="border-color: #333; margin: 20px 0;">
-                        <h4 style="color: var(--text-muted); margin-bottom: 10px;">إعدادات بوت تلغرام (لاستقبال الطلبات)</h4>
-                        <div class="form-group"><label>توكن البوت (Bot Token)</label><input type="text" id="set-telegram-token" placeholder="مثال: 123456:ABC-DEF..."></div>
-                        <div class="form-group"><label>معرف المحادثة (Chat ID)</label><input type="text" id="set-telegram-chatid" placeholder="مثال: 123456789"></div>
+                        <h4 style="color: var(--text-muted); margin-bottom: 10px;">إعدادات بوت تلغرام</h4>
+                        <div class="form-group"><label>توكن البوت (Bot Token)</label><input type="text" id="set-telegram-token"></div>
+                        <div class="form-group"><label>معرف المحادثة (Chat ID)</label><input type="text" id="set-telegram-chatid"></div>
                         <button class="btn-submit" onclick="saveContactInfo()">حفظ بيانات التواصل والإشعارات</button>
                     </div>
                 </details>
-
-                <!-- القسم الثاني (بيانات الدخول) -->
                 <details>
                     <summary>بيانات الدخول للإدارة</summary>
                     <div class="details-content">
-                        <div class="form-group"><label>اسم المستخدم الجديد</label><input type="text" id="new-username" placeholder="اتركه فارغاً لعدم التغيير"></div>
-                        <div class="form-group"><label>كلمة المرور الجديدة</label><input type="password" id="new-password" placeholder="اتركه فارغاً لعدم التغيير"></div>
+                        <div class="form-group"><label>اسم المستخدم الجديد</label><input type="text" id="new-username"></div>
+                        <div class="form-group"><label>كلمة المرور الجديدة</label><input type="password" id="new-password"></div>
                         <button class="btn-submit" onclick="saveCredentials()">حفظ بيانات الدخول</button>
                     </div>
                 </details>
             </div>
-            
         </div>
     </div>
     <script src="js/admin.js"></script>

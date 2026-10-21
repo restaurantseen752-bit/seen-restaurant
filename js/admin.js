@@ -24,7 +24,6 @@ async function fetchData() {
         const competitions = data.competitions || [];
         const offers = data.offers || [];
 
-        // تحديث عداد الطلبات (فقط)
         document.getElementById('dash-orders').innerText = data.todayOrdersCount || 0;
         document.getElementById('dash-items').innerText = items.length;
 
@@ -51,7 +50,7 @@ async function fetchData() {
         const offersBody = document.getElementById('offers-table-body');
         offersBody.innerHTML = offers.length ? '' : '<tr><td colspan="2" style="text-align:center;">لا توجد عروض.</td></tr>';
         offers.forEach(o => {
-            offersBody.innerHTML += `<tr><td>${o.text}</td><td><button class="action-btn btn-delete" onclick="deleteOffer(${o.id})">حذف</button></td></tr>`;
+            offersBody.innerHTML += `<tr><td>${o.text} (${o.price} د.ل)</td><td><button class="action-btn btn-delete" onclick="deleteOffer(${o.id})">حذف</button></td></tr>`;
         });
 
         if (!document.getElementById('set-telegram-token').matches(':focus')) {
@@ -98,8 +97,23 @@ async function toggleCategory(name, is_active) { if(confirm(`تغيير حالة
 async function addMenuItem() { const n = document.getElementById('item-name').value; const p = document.getElementById('item-price').value; const c = document.getElementById('item-category').value; if (n && p) { const s = await sendAction('add_item', { name: n, price: p, category: c }); if (s) { document.getElementById('item-name').value = ''; document.getElementById('item-price').value = ''; alert('✅ تمت الإضافة!'); } } }
 async function deleteMenuItem(id) { if (confirm('حذف الصنف؟')) { const s = await sendAction('delete_item', { id }); if (s) alert('✅ تم الحذف!'); } }
 async function editMenuItem(id, name, price) { let p = prompt(`السعر الجديد لـ ${name}:`, price); if (p) { const s = await sendAction('update_item', { id, price: p }); if (s) alert('✅ تم التعديل!'); } }
-async function addOffer() { const t = document.getElementById('offer-text').value; if (!t) { alert('اكتب نص العرض'); return; } const s = await sendAction('add_offer', { text: t }); if (s) { document.getElementById('offer-text').value = ''; alert('✅ تمت الإضافة!'); } }
+
+// تعديل دالة إضافة العرض
+async function addOffer() { 
+    const t = document.getElementById('offer-text').value; 
+    const p = document.getElementById('offer-price').value; 
+    if (!t || !p) { alert('الرجاء كتابة نص العرض والسعر'); return; } 
+    const price = parseFloat(p); 
+    if (isNaN(price)) { alert('الرجاء إدخال سعر صحيح (أرقام فقط)'); return; } 
+    const s = await sendAction('add_offer', { text: t, price: price }); 
+    if (s) { 
+        document.getElementById('offer-text').value = ''; 
+        document.getElementById('offer-price').value = ''; 
+        alert('✅ تمت الإضافة!'); 
+    } 
+}
 async function deleteOffer(id) { if(confirm('حذف العرض؟')) { const s = await sendAction('delete_offer', { id }); if (s) alert('✅ تم الحذف!'); } }
+
 async function closeRestaurant() { const t = document.getElementById('announcementInput').value; if (!t) { alert('اكتب سبب الإغلاق'); return; } await sendAction('update_setting', { key: 'status', value: 'closed' }); const s = await sendAction('update_setting', { key: 'announcement', value: t }); if (s) alert('✅ تم الإغلاق!'); }
 async function openRestaurant() { if(confirm('فتح المطعم؟')) { await sendAction('update_setting', { key: 'status', value: 'open' }); const s = await sendAction('update_setting', { key: 'announcement', value: '' }); if (s) alert('✅ تم الفتح!'); } }
 
