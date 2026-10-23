@@ -156,6 +156,16 @@ function updateCartUI() {
 function openCart() {
     const container = document.getElementById('cart-items');
     container.innerHTML = cart.map(item => `<div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #333; padding-bottom:8px;"><div><strong style="color:#fff;">${item.name}</strong><br><span style="color:#aaa; font-size:12px;">${item.qty} × ${item.price} د.ل</span></div><button onclick="removeFromCart('${item.id}')" style="background:#e74c3c; color:#fff; border:none; padding:4px 8px; border-radius:5px; cursor:pointer;">حذف</button></div>`).join('');
+    const deliverySelect = document.getElementById('delivery-select');
+    deliverySelect.innerHTML = '<option value="0">الاستلام من المطعم (0.0 د.ل)</option>';
+    if (currentSettings.delivery_areas) {
+        currentSettings.delivery_areas.forEach(area => {
+            deliverySelect.innerHTML += `<option value="${area.fee}">${area.name} (${area.fee} د.ل)</option>`;
+        });
+    }
+    document.getElementById('prepayment-info-text').innerText = currentSettings.prepayment_info || 'لم يتم وضع معلومات دفع.';
+    updateOrderTotal();
+    
     document.getElementById('cart-modal').style.display = 'flex';
 }
 
@@ -170,6 +180,14 @@ function removeFromCart(id) {
 }
 
 async function sendOrder() {
+    const paymentMethod = document.getElementById('payment-method').value;
+    const receiptFile = document.getElementById('receipt-upload').files[0];
+    
+    if (paymentMethod === 'prepayment' && !receiptFile) {
+        alert('الرجاء رفع صورة إيصال الدفع المسبق.');
+        return;
+    }
+
     const name = document.getElementById('customer-name').value;
     // تنظيف رقم الهاتف من أي مسافات أو رموز للحفاظ على الأرقام فقط
     const phone = document.getElementById('customer-phone').value.replace(/[^0-9+]/g, ''); 
@@ -178,10 +196,26 @@ async function sendOrder() {
 
     if (!name || !phone || !address) { alert('الرجاء إدخال الاسم ورقم الهاتف وعنوان التوصيل'); return; }
 
-    const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-    let message = `*طلب جديد من مطعم سين*\n\n👤 *الاسم:* ${name}\n📞 *الهاتف:* ${phone}\n📍 *العنوان:* ${address}\n📝 *ملاحظات:* ${notes || 'لا يوجد'}\n\n*الطلبات:*\n`;
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    const deliveryFee = parseFloat(document.getElementById('delivery-select').value) || 0;
+    const total = subtotal + deliveryFee;
+    let receiptUrl = '';
+    let message = `*طلب جديد من مطعم سين*\n\n👤 *الاسم:* ${name}\n📞 *الهاتف:* ${phone}\n📍 *العنوان:* ${address}\n📝 *ملاحظات:* ${notes || 'لا يوجد'}\n💳 *طريقة الدفع:* ${paymentMethod === 'prepayment' ? 'دفع مسبق (تم إرفاق الإيصال)' : 'عند الاستلام'}\n\n*الطلبات:*\n`;
     cart.forEach(item => { message += `▪️ ${item.name} (${item.qty}) - ${item.price * item.qty} د.ل\n`; });
-    message += `\n💰 *المجموع:* ${total} د.ل`;
+    message += `\n💰 *المجموع الفرعي:* ${subtotal} د.ل\n🛵 *التوصيل:* ${deliveryFee} د.ل\n💵 *الإجمالي:* ${total} د.ل`;
+
+    if (receiptFile) {
+        btn.innerText = 'جاري رفع الإيصال...';
+        btn.disabled = true;
+        const formData = new FormData();
+        formData.append('image', receiptFile);
+        try {
+            const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
+            const uploadData = await uploadRes.json();
+            if(uploadData.success) receiptUrl = uploadData.url;
+            else { alert('فشل رفع الإيصال'); btn.disabled = false; return; }
+        } catch(e) { alert('خطأ في رفع الإيصال'); btn.disabled = false; return; }
+    }
 
     const btn = document.getElementById('send-order-btn');
     btn.innerText = 'جاري الإرسال...';
@@ -191,7 +225,7 @@ async function sendOrder() {
         const res = await fetch('/api/data', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'send_telegram', message: message, total: total })
+            body: JSON.stringify({ action: 'send_telegram', message: message, total: total, receipt_url: receiptUrl })
         });
 
         const data = await res.json();
@@ -214,4 +248,63 @@ async function sendOrder() {
         btn.innerText = 'تأكيد الطلب وإرساله';
         btn.disabled = false;
     }
+}
+
+function updateOrderTotal() {
+    const totalItems = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    const deliverySelect = document.getElementById('delivery-select');
+    const deliveryFee = parseFloat(deliverySelect.value) || 0;
+    const finalTotal = totalItems + deliveryFee;
+    
+    document.getElementById('summary-subtotal').innerText = totalItems;
+    document.getElementById('summary-delivery').innerText = deliveryFee;
+    document.getElementById('summary-total').innerText = finalTotal;
+    
+    // إخفاء حقل العنوان إذا كان "استلام من المطعم"
+    const addressInput = document.getElementById('customer-address');
+    if (deliverySelect.value === "0" && deliverySelect.options[deliverySelect.selectedIndex].text.includes('الاستلام')) {
+        addressInput.style.display = 'none';
+        addressInput.value = 'استلام من المطعم';
+    } else {
+        addressInput.style.display = 'block';
+        addressInput.value = '';
+    }
+}
+
+function togglePaymentMethod() {
+    const method = document.getElementById('payment-method').value;
+    document.getElementById('prepayment-section').style.display = method === 'prepayment' ? 'block' : 'none';
+}
+
+// اكتشاف الآيفون والكروم
+document.addEventListener('DOMContentLoaded', () => {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isChrome = /CriOS/.test(navigator.userAgent);
+    
+    if (isIOS) {
+        // إخفاء شريط التثبيت الخاص بالأندرويد
+        const installBanner = document.getElementById('install-banner');
+        if(installBanner) installBanner.style.display = 'none';
+        
+        // إظهار زر أو نافذة الآيفون (يمكن إضافته لاحقاً)
+        if (isChrome) {
+            // إذا كان كروم، نظهر النافذة عند محاولة التثبيت
+            window.showIOSWarning = function() {
+                document.getElementById('ios-chrome-warning').style.display = 'block';
+                document.getElementById('ios-safari-steps').style.display = 'none';
+                document.getElementById('ios-install-modal').style.display = 'flex';
+            }
+        } else {
+            window.showIOSWarning = function() {
+                document.getElementById('ios-chrome-warning').style.display = 'none';
+                document.getElementById('ios-safari-steps').style.display = 'block';
+                document.getElementById('ios-install-modal').style.display = 'flex';
+            }
+        }
+    }
+});
+
+function copyForSafari() {
+    navigator.clipboard.writeText(window.location.href);
+    alert('تم نسخ الرابط! افتح تطبيق سفاري والصقه في شريط العنوان.');
 }

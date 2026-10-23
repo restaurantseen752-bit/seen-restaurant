@@ -58,6 +58,7 @@ async function fetchData() {
             document.getElementById('set-address').value = settings.address || '';
             document.getElementById('set-telegram-token').value = settings.telegramToken || '';
             document.getElementById('set-telegram-chatid').value = settings.telegramChatId || '';
+            document.getElementById('set-prepayment').value = settings.prepayment_info || '';
         }
 
         const isClosed = settings.status === 'closed';
@@ -68,6 +69,16 @@ async function fetchData() {
         document.getElementById('announcementInput').value = settings.announcement || '';
         document.getElementById('btn-close-rest').style.display = isClosed ? 'none' : 'block';
         document.getElementById('btn-open-rest').style.display = isClosed ? 'block' : 'none';
+
+        const deliveryBody = document.getElementById('delivery-table-body');
+        deliveryBody.innerHTML = '';
+        if(data.delivery_areas && data.delivery_areas.length > 0) {
+            data.delivery_areas.forEach(area => {
+                deliveryBody.innerHTML += `<tr><td>${area.name}</td><td>${area.fee} د.ل</td><td><button class="action-btn btn-delete" onclick="deleteDeliveryArea(${area.id})">حذف</button></td></tr>`;
+            });
+        } else {
+            deliveryBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">لا توجد مناطق</td></tr>';
+        }
 
         const compBody = document.getElementById('comp-table-body');
         compBody.innerHTML = competitions.length ? '' : '<tr><td colspan="5" style="text-align:center;">لا توجد مسابقات.</td></tr>';
@@ -130,7 +141,8 @@ async function saveContactInfo() {
                 phone: document.getElementById('set-phone').value,
                 address: document.getElementById('set-address').value,
                 telegramToken: document.getElementById('set-telegram-token').value,
-                telegramChatId: document.getElementById('set-telegram-chatid').value
+                telegramChatId: document.getElementById('set-telegram-chatid').value,
+                prepayment_info: document.getElementById('set-prepayment').value
             })
         });
         if (res.ok) alert('✅ تم حفظ بيانات التواصل والإشعارات بنجاح!');
@@ -147,3 +159,22 @@ async function setWinner(id) { let w = prompt('اسم الفائز:'); if (w) { 
 function showSection(id, el) { document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('.sidebar a').forEach(l => l.classList.remove('active')); el.classList.add('active'); if (window.innerWidth <= 768) closeMenu(); }
 function openMenu() { document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('active'); }
 function closeMenu() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('active'); }
+
+async function addDeliveryArea() {
+    const name = document.getElementById('delivery-name').value;
+    const fee = document.getElementById('delivery-fee').value;
+    if (!name || !fee) { alert('الرجاء إدخال اسم المنطقة والسعر'); return; }
+    const s = await sendAction('add_delivery_area', { name, fee: parseFloat(fee) });
+    if(s) {
+        document.getElementById('delivery-name').value = '';
+        document.getElementById('delivery-fee').value = '';
+        alert('✅ تمت إضافة المنطقة');
+    }
+}
+
+async function deleteDeliveryArea(id) {
+    if(confirm('هل أنت متأكد من حذف هذه المنطقة؟')) {
+        const s = await sendAction('delete_delivery_area', { id });
+        if(s) alert('✅ تم الحذف');
+    }
+}

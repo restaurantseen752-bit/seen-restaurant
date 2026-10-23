@@ -41,6 +41,7 @@
             <a onclick="showSection('offers', this)">🎁 العروض</a>
             <a onclick="showSection('status', this)">🚦 حالة المطعم</a>
             <a onclick="showSection('competitions', this)">🏆 المسابقات</a>
+            <a onclick="showSection('delivery', this)">🛵 مناطق التوصيل</a>
             <a onclick="showSection('settings', this)">⚙️ الإعدادات</a>
             <a onclick="logout()" style="color: var(--danger); margin-top: auto;">🚪 تسجيل الخروج</a>
         </div>
@@ -104,6 +105,22 @@
                 <div class="table-responsive"><table><thead><tr><th>المسابقة</th><th>الجائزة</th><th>المدة</th><th>الفائز</th><th>إجراءات</th></tr></thead><tbody id="comp-table-body"></tbody></table></div>
             </div>
 
+            
+            <div id="delivery" class="admin-section">
+                <h1 class="header-title">مناطق التوصيل</h1>
+                <div style="background: var(--panel-bg); padding: 20px; border-radius: 15px; margin-bottom: 30px; border: 1px solid var(--border-color);">
+                    <div class="form-group"><label>اسم المنطقة</label><input type="text" id="delivery-name" placeholder="مثال: المنطقة الجنوبية"></div>
+                    <div class="form-group"><label>سعر التوصيل (د.ل)</label><input type="number" id="delivery-fee" placeholder="10"></div>
+                    <button class="btn-submit" onclick="addDeliveryArea()">إضافة منطقة</button>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>المنطقة</th><th>السعر</th><th>إجراء</th></tr></thead>
+                        <tbody id="delivery-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
             <div id="settings" class="admin-section">
                 <h1 class="header-title">الإعدادات</h1>
                 <details>
@@ -115,6 +132,14 @@
                         <h4 style="color: var(--text-muted); margin-bottom: 10px;">إعدادات بوت تلغرام</h4>
                         <div class="form-group"><label>توكن البوت (Bot Token)</label><input type="text" id="set-telegram-token"></div>
                         <div class="form-group"><label>معرف المحادثة (Chat ID)</label><input type="text" id="set-telegram-chatid"></div>
+                        
+                        <hr style="border-color: #333; margin: 20px 0;">
+                        <h4 style="color: var(--text-muted); margin-bottom: 10px;">معلومات الدفع المسبق</h4>
+                        <div class="form-group">
+                            <label>معلومات حساب الدفع (تظهر للزبون عند اختيار الدفع المسبق)</label>
+                            <textarea id="set-prepayment" rows="3" placeholder="مثال: يرجى التحويل إلى سداد 091XXXXXXX"></textarea>
+                        </div>
+    
                         <button class="btn-submit" onclick="saveContactInfo()">حفظ بيانات التواصل والإشعارات</button>
                     </div>
                 </details>
