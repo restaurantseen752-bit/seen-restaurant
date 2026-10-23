@@ -67,7 +67,7 @@ if ('serviceWorker' in navigator) {
 
 document.addEventListener('DOMContentLoaded', async () => {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    if(isIOS) document.getElementById('install-banner').style.display = 'none'; // إخفاء شريط الأندرويد
+    if(isIOS) document.getElementById('install-banner').style.display = 'none';
 
     try {
         const res = await fetch('/api/data', { cache: 'no-store' });
@@ -133,17 +133,16 @@ function renderCustomerMenu(items, categories) {
         let itemsHtml = catItems.map(item => {
             const hasDetails = (item.description && item.description.trim() !== '') || (item.image_url && item.image_url.trim() !== '');
             const itemData = encodeURIComponent(JSON.stringify(item));
-            if (hasDetails) {
-                return `<div class="menu-item" onclick="openDetails('${itemData}')" style="cursor:pointer;">
-                            <div><span class="item-name" style="display:block;">${item.name}</span><span style="font-size:11px; color:#f39c12;">🔍 عرض التفاصيل</span></div>
-                            <span class="item-price">${item.price} د.ل</span>
-                        </div>`;
-            } else {
-                return `<div class="menu-item">
-                            <span class="item-name">${item.name}</span>
-                            <div style="display:flex; align-items:center; gap:10px;"><span class="item-price">${item.price} <span>د.ل</span></span><button onclick="addToCart(${item.id})" style="background:#f39c12; color:#000; border:none; width:30px; height:30px; border-radius:50%; font-weight:bold; cursor:pointer;">+</button></div>
-                        </div>`;
-            }
+            return `<div class="menu-item">
+                        <div onclick="openDetails('${itemData}')" style="cursor:pointer; flex-grow:1;">
+                            <span class="item-name" style="display:block;">${item.name}</span>
+                            ${hasDetails ? '<span style="font-size:11px; color:#f39c12;">🔍 عرض التفاصيل</span>' : ''}
+                        </div>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span class="item-price">${item.price} <span>د.ل</span></span>
+                            <button onclick="addToCart(${item.id})" style="background:#f39c12; color:#000; border:none; width:30px; height:30px; border-radius:50%; font-weight:bold; cursor:pointer;">+</button>
+                        </div>
+                    </div>`;
         }).join('');
 
         return `<button class="accordion" style="background-image: url('${bgImage}');"><div class="acc-content"><span class="acc-title">${catName}</span><span class="acc-badge">افتح واختر</span></div></button>
@@ -238,7 +237,7 @@ async function sendOrder() {
     btn.innerText = 'جاري الإرسال...'; btn.disabled = true;
 
     if (receiptFile) {
-        const formData = new FormData(); formData.append('image', receiptFile); formData.append('password', '123456');
+        const formData = new FormData(); formData.append('image', receiptFile);
         try {
             const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
             const uploadData = await uploadRes.json();
