@@ -14,7 +14,7 @@ function logout() { location.reload(); }
 
 async function fetchData() {
     try {
-        const res = await fetch('/api/data', { cache: 'no-store' });
+        const res = await fetch('/api/data?auth=123456', { cache: 'no-store' });
         const data = await res.json();
         
         if(!data) return;

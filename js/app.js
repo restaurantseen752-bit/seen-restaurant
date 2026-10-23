@@ -209,6 +209,7 @@ async function sendOrder() {
         btn.disabled = true;
         const formData = new FormData();
         formData.append('image', receiptFile);
+        formData.append('password', '123456');
         try {
             const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
             const uploadData = await uploadRes.json();
