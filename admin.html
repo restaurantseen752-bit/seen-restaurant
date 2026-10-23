@@ -39,9 +39,9 @@
             <a class="active" onclick="showSection('dashboard', this)">📊 الرئيسية</a>
             <a onclick="showSection('menu', this)">🍔 إدارة الأصناف والأقسام</a>
             <a onclick="showSection('offers', this)">🎁 العروض</a>
+            <a onclick="showSection('delivery', this)">🛵 مناطق التوصيل</a>
             <a onclick="showSection('status', this)">🚦 حالة المطعم</a>
             <a onclick="showSection('competitions', this)">🏆 المسابقات</a>
-            <a onclick="showSection('delivery', this)">🛵 مناطق التوصيل</a>
             <a onclick="showSection('settings', this)">⚙️ الإعدادات</a>
             <a onclick="logout()" style="color: var(--danger); margin-top: auto;">🚪 تسجيل الخروج</a>
         </div>
@@ -67,6 +67,8 @@
                     <div class="form-group"><label>اسم الصنف</label><input type="text" id="item-name" placeholder="مثال: بيتزا زيتون"></div>
                     <div class="form-group"><label>السعر (د.ل)</label><input type="number" id="item-price" placeholder="15"></div>
                     <div class="form-group"><label>القسم</label><select id="item-category"><option>البيتزا العادية</option><option>البيتزا المحشية</option><option>السندوتشات</option><option>الوجبات</option><option>البوكسات العائلية</option></select></div>
+                    <div class="form-group"><label>وصف الصنف (اختياري)</label><input type="text" id="item-desc" placeholder="وصف..."></div>
+                    <div class="form-group"><label>صورة الصنف (اختياري)</label><input type="file" id="item-img-file" accept="image/*" style="padding: 10px; background: #222; border: 1px solid #444; border-radius: 8px; color: #fff; width: 100%;"></div>
                     <button class="btn-submit" onclick="addMenuItem()">إضافة الصنف</button>
                 </div>
                 <div style="margin-bottom: 15px;"><select id="filter-category" onchange="fetchData()" style="width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: #fff; border-radius: 8px;"><option value="all">عرض كل الأقسام</option><option>البيتزا العادية</option><option>البيتزا المحشية</option><option>السندوتشات</option><option>الوجبات</option><option>البوكسات العائلية</option></select></div>
@@ -76,12 +78,21 @@
             <div id="offers" class="admin-section">
                 <h1 class="header-title">إدارة العروض</h1>
                 <div style="background: var(--panel-bg); padding: 20px; border-radius: 15px; margin-bottom: 30px; border: 1px solid var(--border-color);">
-                    <div class="form-group"><label>نص العرض الجديد</label><textarea id="offer-text" rows="3" placeholder="اكتب العرض هنا..."></textarea></div>
-                    <!-- حقل السعر المضاف هنا -->
-                    <div class="form-group"><label>سعر العرض (د.ل)</label><input type="number" id="offer-price" placeholder="مثال: 50"></div>
+                    <div class="form-group"><label>نص العرض الجديد</label><textarea id="offer-text" rows="3"></textarea></div>
+                    <div class="form-group"><label>سعر العرض (د.ل)</label><input type="number" id="offer-price"></div>
                     <button class="btn-submit" onclick="addOffer()">إضافة العرض</button>
                 </div>
                 <div class="table-responsive"><table><thead><tr><th>العرض</th><th>إجراء</th></tr></thead><tbody id="offers-table-body"></tbody></table></div>
+            </div>
+
+            <div id="delivery" class="admin-section">
+                <h1 class="header-title">مناطق التوصيل</h1>
+                <div style="background: var(--panel-bg); padding: 20px; border-radius: 15px; margin-bottom: 30px; border: 1px solid var(--border-color);">
+                    <div class="form-group"><label>اسم المنطقة</label><input type="text" id="delivery-name" placeholder="المنطقة الجنوبية"></div>
+                    <div class="form-group"><label>سعر التوصيل (د.ل)</label><input type="number" id="delivery-fee" placeholder="10"></div>
+                    <button class="btn-submit" onclick="addDeliveryArea()">إضافة منطقة</button>
+                </div>
+                <div class="table-responsive"><table><thead><tr><th>المنطقة</th><th>السعر</th><th>إجراء</th></tr></thead><tbody id="delivery-table-body"></tbody></table></div>
             </div>
 
             <div id="status" class="admin-section">
@@ -97,34 +108,18 @@
             <div id="competitions" class="admin-section">
                 <h1 class="header-title">إدارة المسابقات</h1>
                 <div style="background: var(--panel-bg); padding: 20px; border-radius: 15px; margin-bottom: 30px; border: 1px solid var(--border-color);">
-                    <div class="form-group"><label>عنوان المسابقة</label><input type="text" id="comp-title" placeholder="مثال: مسابقة أفضل صورة"></div>
-                    <div class="form-group"><label>الجائزة</label><input type="text" id="comp-prize" placeholder="مثال: وجبة مجانية"></div>
-                    <div class="form-group"><label>المدة</label><input type="text" id="comp-duration" placeholder="مثال: أسبوع"></div>
+                    <div class="form-group"><label>عنوان المسابقة</label><input type="text" id="comp-title"></div>
+                    <div class="form-group"><label>الجائزة</label><input type="text" id="comp-prize"></div>
+                    <div class="form-group"><label>المدة</label><input type="text" id="comp-duration"></div>
                     <button class="btn-submit" onclick="addCompetition()">إضافة مسابقة</button>
                 </div>
                 <div class="table-responsive"><table><thead><tr><th>المسابقة</th><th>الجائزة</th><th>المدة</th><th>الفائز</th><th>إجراءات</th></tr></thead><tbody id="comp-table-body"></tbody></table></div>
             </div>
 
-            
-            <div id="delivery" class="admin-section">
-                <h1 class="header-title">مناطق التوصيل</h1>
-                <div style="background: var(--panel-bg); padding: 20px; border-radius: 15px; margin-bottom: 30px; border: 1px solid var(--border-color);">
-                    <div class="form-group"><label>اسم المنطقة</label><input type="text" id="delivery-name" placeholder="مثال: المنطقة الجنوبية"></div>
-                    <div class="form-group"><label>سعر التوصيل (د.ل)</label><input type="number" id="delivery-fee" placeholder="10"></div>
-                    <button class="btn-submit" onclick="addDeliveryArea()">إضافة منطقة</button>
-                </div>
-                <div class="table-responsive">
-                    <table>
-                        <thead><tr><th>المنطقة</th><th>السعر</th><th>إجراء</th></tr></thead>
-                        <tbody id="delivery-table-body"></tbody>
-                    </table>
-                </div>
-            </div>
-
             <div id="settings" class="admin-section">
                 <h1 class="header-title">الإعدادات</h1>
                 <details>
-                    <summary>بيانات التواصل والإشعارات</summary>
+                    <summary>بيانات التواصل والإشعارات والدفع</summary>
                     <div class="details-content">
                         <div class="form-group"><label>رقم الهاتف</label><input type="text" id="set-phone"></div>
                         <div class="form-group"><label>العنوان</label><input type="text" id="set-address"></div>
@@ -132,15 +127,13 @@
                         <h4 style="color: var(--text-muted); margin-bottom: 10px;">إعدادات بوت تلغرام</h4>
                         <div class="form-group"><label>توكن البوت (Bot Token)</label><input type="text" id="set-telegram-token"></div>
                         <div class="form-group"><label>معرف المحادثة (Chat ID)</label><input type="text" id="set-telegram-chatid"></div>
-                        
                         <hr style="border-color: #333; margin: 20px 0;">
                         <h4 style="color: var(--text-muted); margin-bottom: 10px;">معلومات الدفع المسبق</h4>
                         <div class="form-group">
-                            <label>معلومات حساب الدفع (تظهر للزبون عند اختيار الدفع المسبق)</label>
+                            <label>معلومات حساب الدفع (تظهر للزبون)</label>
                             <textarea id="set-prepayment" rows="3" placeholder="مثال: يرجى التحويل إلى سداد 091XXXXXXX"></textarea>
                         </div>
-    
-                        <button class="btn-submit" onclick="saveContactInfo()">حفظ بيانات التواصل والإشعارات</button>
+                        <button class="btn-submit" onclick="saveContactInfo()">حفظ الإعدادات</button>
                     </div>
                 </details>
                 <details>
@@ -154,6 +147,29 @@
             </div>
         </div>
     </div>
+
+    <!-- نافذة تعديل الصنف -->
+    <div id="edit-item-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:5000; justify-content:center; align-items:center; padding:15px;">
+        <div style="background:#1a1a1a; border:2px solid #f39c12; width:100%; max-width:400px; border-radius:20px; padding:20px; position:relative; max-height:90vh; overflow-y:auto;">
+            <span onclick="document.getElementById('edit-item-modal').style.display='none'" style="position:absolute; top:10px; left:15px; font-size:30px; cursor:pointer; color:#fff;">&times;</span>
+            <h2 style="color:#f39c12; text-align:center; margin-bottom:20px;">تعديل الصنف</h2>
+            <input type="hidden" id="edit-item-id">
+            <div class="form-group"><label>اسم الصنف</label><input type="text" id="edit-item-name"></div>
+            <div class="form-group"><label>السعر (د.ل)</label><input type="number" id="edit-item-price"></div>
+            <div class="form-group"><label>القسم</label><select id="edit-item-category"><option>البيتزا العادية</option><option>البيتزا المحشية</option><option>السندوتشات</option><option>الوجبات</option><option>البوكسات العائلية</option></select></div>
+            <div class="form-group"><label>وصف الصنف</label><textarea id="edit-item-desc" rows="2"></textarea></div>
+            <div class="form-group">
+                <label>صورة الصنف</label>
+                <input type="file" id="edit-item-img-file" accept="image/*" style="padding: 10px; background: #222; border: 1px solid #444; border-radius: 8px; color: #fff; width: 100%;">
+                <div style="margin-top: 10px; text-align: center;">
+                    <img id="edit-item-img-preview" src="" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; display: none; border: 1px solid #f39c12;">
+                    <button type="button" id="btn-delete-img" onclick="deleteItemImage()" style="display: none; background: #e74c3c; color: #fff; border: none; padding: 5px 10px; border-radius: 5px; margin-top: 5px; cursor: pointer; font-size: 12px;">حذف الصورة</button>
+                </div>
+            </div>
+            <button id="btn-save-edit" onclick="saveFullItemEdit()" class="btn-submit" style="margin-top:15px;">حفظ التعديلات</button>
+        </div>
+    </div>
+
     <script src="js/admin.js"></script>
 </body>
 </html>
