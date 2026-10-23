@@ -37,7 +37,6 @@ window.addEventListener('beforeinstallprompt', (e) => {
 function installApp() {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     const isChrome = /CriOS/.test(navigator.userAgent);
-    
     if (isIOS) {
         if (isChrome) {
             document.getElementById('ios-chrome-warning').style.display = 'block';
@@ -130,17 +129,17 @@ function renderCustomerMenu(items, categories) {
             return `<button class="accordion" onclick="alert('نعتذر منك، هذا القسم غير متوفر حالياً.')" style="background-image: url('${bgImage}');"><div class="acc-content"><span class="acc-title">${catName}</span><span class="acc-badge" style="background:#e74c3c; color:#fff; border-color:#e74c3c;">غير متوفر حالياً</span></div></button>`;
         }
 
+        // هنا التعديل: فصل زر التفاصيل عن زر (+) بشكل كامل
         let itemsHtml = catItems.map(item => {
             const hasDetails = (item.description && item.description.trim() !== '') || (item.image_url && item.image_url.trim() !== '');
-            const itemData = encodeURIComponent(JSON.stringify(item));
-            return `<div class="menu-item">
-                        <div onclick="openDetails('${itemData}')" style="cursor:pointer; flex-grow:1;">
-                            <span class="item-name" style="display:block;">${item.name}</span>
-                            ${hasDetails ? '<span style="font-size:11px; color:#f39c12;">🔍 عرض التفاصيل</span>' : ''}
+            return `<div class="menu-item" style="display:flex; justify-content:space-between; align-items:center; padding: 12px 0; border-bottom: 1px dashed #444;">
+                        <div style="flex: 1;">
+                            <span class="item-name" style="display:block; color:#fff; font-weight:bold;">${item.name}</span>
+                            ${hasDetails ? `<button onclick="openDetails(${item.id})" style="background:#333; color:#f39c12; border:1px solid #f39c12; padding:2px 8px; border-radius:5px; font-size:11px; margin-top:5px; cursor:pointer;">🔍 عرض التفاصيل</button>` : ''}
                         </div>
                         <div style="display:flex; align-items:center; gap:10px;">
-                            <span class="item-price">${item.price} <span>د.ل</span></span>
-                            <button onclick="addToCart(${item.id})" style="background:#f39c12; color:#000; border:none; width:30px; height:30px; border-radius:50%; font-weight:bold; cursor:pointer;">+</button>
+                            <span style="color:#f39c12; font-weight:bold;">${item.price} د.ل</span>
+                            <button onclick="addToCart(${item.id})" style="background:#f39c12; color:#000; border:none; width:32px; height:32px; border-radius:50%; font-size:22px; font-weight:bold; cursor:pointer; display:flex; justify-content:center; align-items:center;">+</button>
                         </div>
                     </div>`;
         }).join('');
@@ -162,13 +161,18 @@ function renderCustomerMenu(items, categories) {
     }
 }
 
-function openDetails(encodedData) {
-    const item = JSON.parse(decodeURIComponent(encodedData));
+// دالة عرض التفاصيل (تعتمد على الـ ID الآن بدلاً من النص)
+function openDetails(id) {
+    const item = allMenuItems.find(i => i.id === id);
+    if(!item) return;
+    
     document.getElementById('detail-item-name').innerText = item.name;
     document.getElementById('detail-item-price').innerText = item.price;
     document.getElementById('detail-item-desc').innerText = item.description || 'لا يوجد وصف متاح.';
+    
     const imgEl = document.getElementById('detail-item-image');
     if(item.image_url) { imgEl.src = item.image_url; imgEl.style.display = 'block'; } else { imgEl.style.display = 'none'; }
+    
     document.getElementById('detail-item-add-btn').onclick = function() { addToCart(item.id); closeItemDetails(); };
     document.getElementById('item-details-modal').style.display = 'flex';
 }
