@@ -1,8 +1,4 @@
-let currentSettings = {};
-let allMenuItems = [];
-let allCategories = [];
-let cart = [];
-let deferredPrompt;
+let currentSettings = {}; let allMenuItems = []; let allCategories = []; let cart = []; let deferredPrompt;
 
 const categoryImages = {
     'البيتزا العادية': 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80',
@@ -12,124 +8,49 @@ const categoryImages = {
     'البوكسات العائلية': 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=500&q=80'
 };
 
-function navigateTo(pageId) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(pageId).classList.add('active');
-    window.scrollTo(0, 0);
-}
-
-function showToast(msg) {
-    const toast = document.getElementById('toast');
-    toast.innerText = msg; toast.style.display = 'block'; toast.style.opacity = '1';
-    setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.style.display = 'none', 300); }, 2000);
-}
-
+function navigateTo(pageId) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById(pageId).classList.add('active'); window.scrollTo(0, 0); }
+function showToast(msg) { const toast = document.getElementById('toast'); toast.innerText = msg; toast.style.display = 'block'; toast.style.opacity = '1'; setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.style.display = 'none', 300); }, 2000); }
 function openQrModal() { document.getElementById('qr-modal').style.display = 'flex'; }
 function closeQrModal() { document.getElementById('qr-modal').style.display = 'none'; }
 
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault(); deferredPrompt = e;
-    if (!window.matchMedia('(display-mode: standalone)').matches) {
-        document.getElementById('install-banner').style.display = 'flex';
-    }
-});
-
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; if (!window.matchMedia('(display-mode: standalone)').matches) { document.getElementById('install-banner').style.display = 'flex'; } });
 function installApp() {
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    const isChrome = /CriOS/.test(navigator.userAgent);
-    if (isIOS) {
-        if (isChrome) {
-            document.getElementById('ios-chrome-warning').style.display = 'block';
-            document.getElementById('ios-safari-steps').style.display = 'none';
-        } else {
-            document.getElementById('ios-chrome-warning').style.display = 'none';
-            document.getElementById('ios-safari-steps').style.display = 'block';
-        }
-        document.getElementById('ios-install-modal').style.display = 'flex';
-    } else if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => {
-            if (choiceResult.outcome === 'accepted') document.getElementById('install-banner').style.display = 'none';
-            deferredPrompt = null;
-        });
-    }
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream; const isChrome = /CriOS/.test(navigator.userAgent);
+    if (isIOS) { if (isChrome) { document.getElementById('ios-chrome-warning').style.display = 'block'; document.getElementById('ios-safari-steps').style.display = 'none'; } else { document.getElementById('ios-chrome-warning').style.display = 'none'; document.getElementById('ios-safari-steps').style.display = 'block'; } document.getElementById('ios-install-modal').style.display = 'flex'; } 
+    else if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then((choiceResult) => { if (choiceResult.outcome === 'accepted') document.getElementById('install-banner').style.display = 'none'; deferredPrompt = null; }); }
 }
-
-function copyForSafari() {
-    navigator.clipboard.writeText(window.location.href);
-    alert('تم نسخ الرابط! افتح تطبيق سفاري والصقه في شريط العنوان.');
-}
-
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => { navigator.serviceWorker.register('service-worker.js').catch(err => console.log('SW failed: ', err)); });
-}
+function copyForSafari() { navigator.clipboard.writeText(window.location.href); alert('تم نسخ الرابط! افتح سفاري والصقه في شريط العنوان.'); }
+if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('service-worker.js').catch(err => console.log('SW failed: ', err)); }); }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    if(isIOS) document.getElementById('install-banner').style.display = 'none';
-
+    if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) document.getElementById('install-banner').style.display = 'none';
     try {
         const res = await fetch('/api/data', { cache: 'no-store' });
         const data = await res.json();
-        
-        currentSettings = data.settings || {};
-        allMenuItems = data.items || [];
-        allCategories = data.categories || [];
-        const offers = data.offers || [];
-        currentSettings.delivery_areas = data.delivery_areas || [];
-
-        document.getElementById('header-phone').innerText = currentSettings.phone || '0935746965';
-        document.getElementById('header-address').innerText = currentSettings.address || 'سرت';
-
-        if (currentSettings.status === 'closed' && currentSettings.announcement) {
-            document.getElementById('announcementText').innerText = currentSettings.announcement;
-            document.getElementById('maintenanceBanner').style.display = 'block';
-        }
+        currentSettings = data.settings || {}; allMenuItems = data.items || []; allCategories = data.categories || []; const offers = data.offers || []; currentSettings.delivery_areas = data.delivery_areas || [];
+        document.getElementById('header-phone').innerText = currentSettings.phone || '0935746965'; document.getElementById('header-address').innerText = currentSettings.address || 'سرت';
+        if (currentSettings.status === 'closed' && currentSettings.announcement) { document.getElementById('announcementText').innerText = currentSettings.announcement; document.getElementById('maintenanceBanner').style.display = 'block'; }
 
         const offersContainer = document.getElementById('customer-offers-container');
-        if (offers.length > 0) {
-            offersContainer.innerHTML = offers.map(o => `
-                <div style="background: linear-gradient(145deg, #1f1f1f, #141414); border: 2px solid #f39c12; border-radius: 15px; padding: 20px; margin-bottom: 15px; text-align: center;">
-                    <span style="font-size: 30px; display: block; margin-bottom: 10px;">🎁</span>
-                    <p style="font-size: 16px; color: #fff; margin:0 0 10px 0;">${o.text}</p>
-                    <div style="font-size: 22px; font-weight: bold; color: #f39c12; margin-bottom: 15px;">${o.price} د.ل</div>
-                    <button onclick="addOfferToCart(${o.id}, '${o.text.replace(/'/g, "\\'")}', ${o.price})" style="background:#2ecc71; color:#fff; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:16px;">اغتنم الفرصة</button>
-                </div>
-            `).join('');
-        } else { offersContainer.innerHTML = `<div style="text-align: center; padding: 50px; color: #888;">لا توجد عروض حالياً.</div>`; }
+        if (offers.length > 0) { offersContainer.innerHTML = offers.map(o => `<div style="background: linear-gradient(145deg, #1f1f1f, #141414); border: 2px solid #f39c12; border-radius: 15px; padding: 20px; margin-bottom: 15px; text-align: center;"><span style="font-size: 30px; display: block; margin-bottom: 10px;">🎁</span><p style="font-size: 16px; color: #fff; margin:0 0 10px 0;">${o.text}</p><div style="font-size: 22px; font-weight: bold; color: #f39c12; margin-bottom: 15px;">${o.price} د.ل</div><button onclick="addOfferToCart(${o.id}, '${o.text.replace(/'/g, "\\'")}', ${o.price})" style="background:#2ecc71; color:#fff; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer; font-size:16px;">اغتنم الفرصة</button></div>`).join(''); } 
+        else { offersContainer.innerHTML = `<div style="text-align: center; padding: 50px; color: #888;">لا توجد عروض حالياً.</div>`; }
 
         const compContainer = document.getElementById('customer-comp-container');
-        if (data.competitions && data.competitions.length > 0) {
-            compContainer.innerHTML = data.competitions.map(c => {
-                if (c.winner) {
-                    return `<div style="background: linear-gradient(145deg, #1f1f1f, #141414); border: 2px solid #2ecc71; border-radius: 15px; padding: 20px; margin-bottom: 15px; text-align: center; position: relative; overflow: hidden;"><div style="position: absolute; top: 10px; right: -30px; background: #2ecc71; color: #fff; padding: 5px 40px; transform: rotate(45deg); font-weight: bold; font-size: 12px;">منتهية</div><h3 style="color: #f39c12; margin-bottom: 10px;">🏆 ${c.title}</h3><p style="color: #fff; margin-bottom: 5px;">الجائزة: <strong>${c.prize}</strong></p><p style="color: #aaa; font-size: 14px; margin-bottom: 15px;">المدة: ${c.duration}</p><div style="background: rgba(46, 204, 113, 0.1); border: 1px dashed #2ecc71; border-radius: 10px; padding: 15px;"><p style="color: #2ecc71; font-size: 18px; font-weight: bold; margin: 0;">🎉 الفائز: ${c.winner}</p></div></div>`;
-                }
-                return `<div style="background: #1f1f1f; border: 1px solid #f39c12; border-radius: 12px; padding: 20px; margin-bottom: 15px; text-align: center;"><h3 style="color: #f39c12; margin-bottom: 10px;">🔥 ${c.title}</h3><p style="color: #fff; margin-bottom: 5px;">الجائزة: <strong>${c.prize}</strong></p><p style="color: #aaa; font-size: 14px;">المدة: ${c.duration}</p><p style="color: #f39c12; font-size: 13px; margin-top: 10px; font-weight: bold;">⏳ المسابقة مستمرة.. شارك الآن!</p></div>`;
-            }).join('');
-        } else { compContainer.innerHTML = `<div style="text-align: center; padding: 50px; color: #888;">لا توجد مسابقات حالياً.</div>`; }
-
+        if (data.competitions && data.competitions.length > 0) { compContainer.innerHTML = data.competitions.map(c => c.winner ? `<div style="background: linear-gradient(145deg, #1f1f1f, #141414); border: 2px solid #2ecc71; border-radius: 15px; padding: 20px; margin-bottom: 15px; text-align: center; position: relative; overflow: hidden;"><div style="position: absolute; top: 10px; right: -30px; background: #2ecc71; color: #fff; padding: 5px 40px; transform: rotate(45deg); font-weight: bold; font-size: 12px;">منتهية</div><h3 style="color: #f39c12; margin-bottom: 10px;">🏆 ${c.title}</h3><p style="color: #fff; margin-bottom: 5px;">الجائزة: <strong>${c.prize}</strong></p><p style="color: #aaa; font-size: 14px; margin-bottom: 15px;">المدة: ${c.duration}</p><div style="background: rgba(46, 204, 113, 0.1); border: 1px dashed #2ecc71; border-radius: 10px; padding: 15px;"><p style="color: #2ecc71; font-size: 18px; font-weight: bold; margin: 0;">🎉 الفائز: ${c.winner}</p></div></div>` : `<div style="background: #1f1f1f; border: 1px solid #f39c12; border-radius: 12px; padding: 20px; margin-bottom: 15px; text-align: center;"><h3 style="color: #f39c12; margin-bottom: 10px;">🔥 ${c.title}</h3><p style="color: #fff; margin-bottom: 5px;">الجائزة: <strong>${c.prize}</strong></p><p style="color: #aaa; font-size: 14px;">المدة: ${c.duration}</p><p style="color: #f39c12; font-size: 13px; margin-top: 10px; font-weight: bold;">⏳ المسابقة مستمرة.. شارك الآن!</p></div>`).join(''); } 
+        else { compContainer.innerHTML = `<div style="text-align: center; padding: 50px; color: #888;">لا توجد مسابقات حالياً.</div>`; }
         renderCustomerMenu(allMenuItems, allCategories);
-
     } catch (e) { console.error("خطأ:", e); document.getElementById('customer-menu-container').innerHTML = '<p style="text-align:center; color:#fff;">عذراً، حدث خطأ في تحميل القائمة.</p>'; }
 });
 
 function renderCustomerMenu(items, categories) {
     const container = document.getElementById('customer-menu-container');
     let displayCategories = categories;
-    if (!displayCategories || displayCategories.length === 0) {
-        displayCategories = [{ name: 'البيتزا العادية', is_active: 1 },{ name: 'البيتزا المحشية', is_active: 1 },{ name: 'السندوتشات', is_active: 1 },{ name: 'الوجبات', is_active: 1 },{ name: 'البوكسات العائلية', is_active: 1 }];
-    }
+    if (!displayCategories || displayCategories.length === 0) { displayCategories = [{ name: 'البيتزا العادية', is_active: 1 },{ name: 'البيتزا المحشية', is_active: 1 },{ name: 'السندوتشات', is_active: 1 },{ name: 'الوجبات', is_active: 1 },{ name: 'البوكسات العائلية', is_active: 1 }]; }
 
     container.innerHTML = displayCategories.map(cat => {
-        const catName = cat.name; const isActive = cat.is_active;
-        const catItems = items.filter(i => i.category === catName);
-        const bgImage = categoryImages[catName] || categoryImages['البيتزا العادية'];
+        const catName = cat.name; const isActive = cat.is_active; const catItems = items.filter(i => i.category === catName); const bgImage = categoryImages[catName] || categoryImages['البيتزا العادية'];
+        if (!isActive) { return `<button class="accordion" onclick="alert('نعتذر منك، هذا القسم غير متوفر حالياً.')" style="background-image: url('${bgImage}');"><div class="acc-content"><span class="acc-title">${catName}</span><span class="acc-badge" style="background:#e74c3c; color:#fff; border-color:#e74c3c;">غير متوفر حالياً</span></div></button>`; }
 
-        if (!isActive) {
-            return `<button class="accordion" onclick="alert('نعتذر منك، هذا القسم غير متوفر حالياً.')" style="background-image: url('${bgImage}');"><div class="acc-content"><span class="acc-title">${catName}</span><span class="acc-badge" style="background:#e74c3c; color:#fff; border-color:#e74c3c;">غير متوفر حالياً</span></div></button>`;
-        }
-
-        // هنا التعديل: فصل زر التفاصيل عن زر (+) بشكل كامل
         let itemsHtml = catItems.map(item => {
             const hasDetails = (item.description && item.description.trim() !== '') || (item.image_url && item.image_url.trim() !== '');
             return `<div class="menu-item" style="display:flex; justify-content:space-between; align-items:center; padding: 12px 0; border-bottom: 1px dashed #444;">
@@ -143,9 +64,7 @@ function renderCustomerMenu(items, categories) {
                         </div>
                     </div>`;
         }).join('');
-
-        return `<button class="accordion" style="background-image: url('${bgImage}');"><div class="acc-content"><span class="acc-title">${catName}</span><span class="acc-badge">افتح واختر</span></div></button>
-            <div class="panel">${catItems.length > 0 ? itemsHtml : '<div style="padding: 15px; color: #888; text-align: center;">لا توجد أصناف متاحة في هذا القسم حالياً.</div>'}</div>`;
+        return `<button class="accordion" style="background-image: url('${bgImage}');"><div class="acc-content"><span class="acc-title">${catName}</span><span class="acc-badge">افتح واختر</span></div></button><div class="panel">${catItems.length > 0 ? itemsHtml : '<div style="padding: 15px; color: #888; text-align: center;">لا توجد أصناف متاحة في هذا القسم حالياً.</div>'}</div>`;
     }).join('');
 
     var acc = document.getElementsByClassName("accordion");
@@ -161,61 +80,36 @@ function renderCustomerMenu(items, categories) {
     }
 }
 
-// دالة عرض التفاصيل (تعتمد على الـ ID الآن بدلاً من النص)
 function openDetails(id) {
-    const item = allMenuItems.find(i => i.id === id);
-    if(!item) return;
-    
-    document.getElementById('detail-item-name').innerText = item.name;
-    document.getElementById('detail-item-price').innerText = item.price;
-    document.getElementById('detail-item-desc').innerText = item.description || 'لا يوجد وصف متاح.';
-    
+    const item = allMenuItems.find(i => i.id === id); if(!item) return;
+    document.getElementById('detail-item-name').innerText = item.name; document.getElementById('detail-item-price').innerText = item.price; document.getElementById('detail-item-desc').innerText = item.description || 'لا يوجد وصف متاح.';
     const imgEl = document.getElementById('detail-item-image');
     if(item.image_url) { imgEl.src = item.image_url; imgEl.style.display = 'block'; } else { imgEl.style.display = 'none'; }
-    
     document.getElementById('detail-item-add-btn').onclick = function() { addToCart(item.id); closeItemDetails(); };
     document.getElementById('item-details-modal').style.display = 'flex';
 }
 function closeItemDetails() { document.getElementById('item-details-modal').style.display = 'none'; }
 
 function updateOrderTotal() {
-    const totalItems = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-    const deliveryFee = parseFloat(document.getElementById('delivery-select').value) || 0;
-    const finalTotal = totalItems + deliveryFee;
-    document.getElementById('summary-subtotal').innerText = totalItems;
-    document.getElementById('summary-delivery').innerText = deliveryFee;
-    document.getElementById('summary-total').innerText = finalTotal;
-    
-    const addressInput = document.getElementById('customer-address');
-    const deliverySelect = document.getElementById('delivery-select');
-    if (deliverySelect.value === "0" && deliverySelect.options[deliverySelect.selectedIndex].text.includes('الاستلام')) {
-        addressInput.style.display = 'none'; addressInput.value = 'استلام من المطعم';
-    } else { addressInput.style.display = 'block'; addressInput.value = ''; }
+    const totalItems = cart.reduce((sum, item) => sum + (item.price * item.qty), 0); const deliveryFee = parseFloat(document.getElementById('delivery-select').value) || 0; const finalTotal = totalItems + deliveryFee;
+    document.getElementById('summary-subtotal').innerText = totalItems; document.getElementById('summary-delivery').innerText = deliveryFee; document.getElementById('summary-total').innerText = finalTotal;
+    const addressInput = document.getElementById('customer-address'); const deliverySelect = document.getElementById('delivery-select');
+    if (deliverySelect.value === "0" && deliverySelect.options[deliverySelect.selectedIndex].text.includes('الاستلام')) { addressInput.style.display = 'none'; addressInput.value = 'استلام من المطعم'; } else { addressInput.style.display = 'block'; addressInput.value = ''; }
 }
-
-function togglePaymentMethod() {
-    document.getElementById('prepayment-section').style.display = document.getElementById('payment-method').value === 'prepayment' ? 'block' : 'none';
-}
+function togglePaymentMethod() { document.getElementById('prepayment-section').style.display = document.getElementById('payment-method').value === 'prepayment' ? 'block' : 'none'; }
 
 function openCart() {
     const container = document.getElementById('cart-items');
     container.innerHTML = cart.map(item => `<div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #333; padding-bottom:8px;"><div><strong style="color:#fff;">${item.name}</strong><br><span style="color:#aaa; font-size:12px;">${item.qty} × ${item.price} د.ل</span></div><button onclick="removeFromCart('${item.id}')" style="background:#e74c3c; color:#fff; border:none; padding:4px 8px; border-radius:5px; cursor:pointer;">حذف</button></div>`).join('');
-    
-    const deliverySelect = document.getElementById('delivery-select');
-    deliverySelect.innerHTML = '<option value="0">الاستلام من المطعم (0.0 د.ل)</option>';
-    if (currentSettings.delivery_areas) {
-        currentSettings.delivery_areas.forEach(area => { deliverySelect.innerHTML += `<option value="${area.fee}">${area.name} (${area.fee} د.ل)</option>`; });
-    }
+    const deliverySelect = document.getElementById('delivery-select'); deliverySelect.innerHTML = '<option value="0">الاستلام من المطعم (0.0 د.ل)</option>';
+    if (currentSettings.delivery_areas) { currentSettings.delivery_areas.forEach(area => { deliverySelect.innerHTML += `<option value="${area.fee}">${area.name} (${area.fee} د.ل)</option>`; }); }
     document.getElementById('prepayment-info-text').innerText = currentSettings.prepayment_info || 'لم يتم وضع معلومات دفع.';
-    updateOrderTotal();
-    document.getElementById('cart-modal').style.display = 'flex';
+    updateOrderTotal(); document.getElementById('cart-modal').style.display = 'flex';
 }
-
 function closeCart() { document.getElementById('cart-modal').style.display = 'none'; }
 function removeFromCart(id) { cart = cart.filter(i => String(i.id) !== String(id)); updateCartUI(); if (cart.length === 0) closeCart(); else openCart(); }
 function updateCartUI() {
-    const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
-    const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    const totalItems = cart.reduce((sum, item) => sum + item.qty, 0); const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
     document.getElementById('cart-count').innerText = totalItems; document.getElementById('cart-total').innerText = totalPrice; document.getElementById('modal-total').innerText = totalPrice;
     if (totalItems > 0) document.getElementById('cart-bar').style.display = 'flex'; else document.getElementById('cart-bar').style.display = 'none';
 }
@@ -223,42 +117,22 @@ function addToCart(id) { const item = allMenuItems.find(i => i.id === id); const
 function addOfferToCart(id, name, price) { const offerId = 'offer_' + id; const existing = cart.find(i => i.id === offerId); if (existing) { existing.qty++; showToast(`تمت إضافة ${name}`); } else { cart.push({ id: offerId, name: name, price: price, qty: 1 }); showToast(`تم اختيار العرض: ${name}`); } updateCartUI(); }
 
 async function sendOrder() {
-    const name = document.getElementById('customer-name').value;
-    const phone = document.getElementById('customer-phone').value.replace(/[^0-9+]/g, ''); 
-    const address = document.getElementById('customer-address').value;
-    const notes = document.getElementById('order-notes').value;
-    const paymentMethod = document.getElementById('payment-method').value;
-    const receiptFile = document.getElementById('receipt-upload').files[0];
-
+    const name = document.getElementById('customer-name').value; const phone = document.getElementById('customer-phone').value.replace(/[^0-9+]/g, ''); const address = document.getElementById('customer-address').value; const notes = document.getElementById('order-notes').value; const paymentMethod = document.getElementById('payment-method').value; const receiptFile = document.getElementById('receipt-upload').files[0];
     if (!name || !phone || !address) { alert('الرجاء إدخال الاسم ورقم الهاتف والعنوان'); return; }
     if (paymentMethod === 'prepayment' && !receiptFile) { alert('الرجاء رفع صورة إيصال الدفع المسبق.'); return; }
-
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-    const deliveryFee = parseFloat(document.getElementById('delivery-select').value) || 0;
-    const total = subtotal + deliveryFee;
-    let receiptUrl = '';
-    const btn = document.getElementById('send-order-btn');
-    btn.innerText = 'جاري الإرسال...'; btn.disabled = true;
-
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0); const deliveryFee = parseFloat(document.getElementById('delivery-select').value) || 0; const total = subtotal + deliveryFee; let receiptUrl = '';
+    const btn = document.getElementById('send-order-btn'); btn.innerText = 'جاري الإرسال...'; btn.disabled = true;
     if (receiptFile) {
         const formData = new FormData(); formData.append('image', receiptFile);
-        try {
-            const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
-            const uploadData = await uploadRes.json();
-            if(uploadData.success) receiptUrl = uploadData.url;
-            else { alert('فشل رفع الإيصال'); btn.disabled = false; btn.innerText = 'تأكيد الطلب'; return; }
-        } catch(e) { alert('خطأ في رفع الإيصال'); btn.disabled = false; btn.innerText = 'تأكيد الطلب'; return; }
+        try { const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData }); const uploadData = await uploadRes.json(); if(uploadData.success) receiptUrl = uploadData.url; else { alert('فشل رفع الإيصال'); btn.disabled = false; btn.innerText = 'تأكيد الطلب'; return; } } 
+        catch(e) { alert('خطأ في رفع الإيصال'); btn.disabled = false; btn.innerText = 'تأكيد الطلب'; return; }
     }
-
     let message = `*طلب جديد من مطعم سين*\n\n👤 *الاسم:* ${name}\n📞 *الهاتف:* ${phone}\n📍 *العنوان:* ${address}\n📝 *ملاحظات:* ${notes || 'لا يوجد'}\n💳 *الدفع:* ${paymentMethod === 'prepayment' ? 'مسبق' : 'عند الاستلام'}\n\n*الطلبات:*\n`;
     cart.forEach(item => { message += `▪️ ${item.name} (${item.qty}) - ${item.price * item.qty} د.ل\n`; });
     message += `\n💰 *المجموع الفرعي:* ${subtotal} د.ل\n🛵 *التوصيل:* ${deliveryFee} د.ل\n💵 *الإجمالي:* ${total} د.ل`;
-
     try {
         const res = await fetch('/api/data', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'send_telegram', message: message, total: total, receipt_url: receiptUrl }) });
-        if (res.ok) {
-            closeCart(); document.getElementById('success-modal').style.display = 'flex'; cart = []; updateCartUI();
-            document.getElementById('customer-name').value = ''; document.getElementById('customer-phone').value = ''; document.getElementById('customer-address').value = ''; document.getElementById('order-notes').value = '';
-        } else { alert('حدث خطأ أثناء إرسال الطلب.'); }
+        if (res.ok) { closeCart(); document.getElementById('success-modal').style.display = 'flex'; cart = []; updateCartUI(); document.getElementById('customer-name').value = ''; document.getElementById('customer-phone').value = ''; document.getElementById('customer-address').value = ''; document.getElementById('order-notes').value = ''; } 
+        else { alert('حدث خطأ أثناء إرسال الطلب.'); }
     } catch (e) { alert('حدث خطأ في الاتصال.'); } finally { btn.innerText = 'تأكيد الطلب'; btn.disabled = false; }
 }

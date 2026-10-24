@@ -7,3 +7,7 @@ compatibility_flags = ["nodejs_compat"]
 binding = "DB"
 database_name = "seen-menu-db"
 database_id = "7e26b6dd-5557-46ca-b1c6-0861236e0ee6"
+
+[[r2_buckets]]
+binding = "IMAGES"
+bucket_name = "seen-images"
