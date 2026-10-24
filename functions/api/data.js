@@ -1,5 +1,4 @@
-// Cloudflare Pages Function - Main Data API
-// Handles: GET (public data), POST (login, logout, change_password, send_telegram, admin actions)
+// Cloudflare Pages Function - Main Data API (Final Perfected Version)
 
 async function hashPassword(password, saltB64) {
     const enc = new TextEncoder();
@@ -48,7 +47,6 @@ async function makeNewCredentials(db, newPassword) {
     await db.prepare('UPDATE admin_credentials SET password_hash = ?, salt = ?, updated_at = ? WHERE id = 1').bind(hash, saltB64, now).run();
 }
 
-
 async function deleteImageFromGitHub(env, imageUrl) {
     if (!imageUrl || !imageUrl.includes('jsdelivr.net/gh/')) return;
     try {
@@ -58,23 +56,38 @@ async function deleteImageFromGitHub(env, imageUrl) {
         const repo = env.GITHUB_REPO;
         const token = env.GITHUB_TOKEN;
         if (!owner || !repo || !token) return;
-
-        const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filename}`;
+        const getUrl = 'https://api.github.com/repos/' + owner + '/' + repo + '/contents/' + filename;
         const getRes = await fetch(getUrl, {
-            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'CF-Worker' }
+            headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'CF-Worker' }
         });
-        
         if (getRes.ok) {
             const fileData = await getRes.json();
-            const deleteUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filename}`;
-            await fetch(deleteUrl, {
+            await fetch(getUrl, {
                 method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json', 'User-Agent': 'CF-Worker' },
-                body: JSON.stringify({ message: `Delete ${filename}`, sha: fileData.sha })
+                headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json', 'User-Agent': 'CF-Worker' },
+                body: JSON.stringify({ message: 'Delete ' + filename, sha: fileData.sha })
             });
         }
     } catch (e) {
         console.error('Failed to delete old image:', e);
+    }
+}
+
+async function fetchWithRetry(url, options, maxRetries = 3) {
+    for (let i = 0; i < maxRetries; i++) {
+        try {
+            const resp = await fetch(url, options);
+            if (resp.ok) return resp;
+            if (resp.status === 429) {
+                await new Promise(r => setTimeout(r, 2000 * (i + 1)));
+                continue;
+            }
+            const err = await resp.json().catch(() => ({ description: 'Unknown error' }));
+            throw new Error(err.description || 'HTTP ' + resp.status);
+        } catch (err) {
+            if (i === maxRetries - 1) throw err;
+            await new Promise(r => setTimeout(r, 1000));
+        }
     }
 }
 
@@ -95,7 +108,6 @@ export async function onRequest(context) {
             const url = new URL(request.url);
             const token = url.searchParams.get('token');
             const isAdmin = await verifySession(db, token);
-
             const items = await db.prepare('SELECT * FROM items').all();
             const settings = await db.prepare('SELECT * FROM settings').all();
             const competitions = await db.prepare('SELECT * FROM competitions').all();
@@ -104,13 +116,11 @@ export async function onRequest(context) {
             const delivery_areas = await db.prepare('SELECT * FROM delivery_areas').all();
             const ordersTodayRes = await db.prepare("SELECT COUNT(*) as count FROM orders WHERE date(created_at, '+2 hours') = date('now', '+2 hours')").first();
             const todayOrdersCount = ordersTodayRes ? ordersTodayRes.count : 0;
-
             const settingsObj = {};
             settings.results.forEach(row => {
                 if (!isAdmin && ['telegramToken', 'telegramChatId'].includes(row.key)) return;
                 settingsObj[row.key] = row.value;
             });
-
             return new Response(JSON.stringify({
                 items: items.results,
                 settings: settingsObj,
@@ -130,7 +140,7 @@ export async function onRequest(context) {
         let body = {};
         let imageFile = null;
         const contentType = request.headers.get('content-type') || '';
-        
+
         if (contentType.includes('multipart/form-data')) {
             const formData = await request.formData();
             body.action = formData.get('action');
@@ -177,49 +187,35 @@ export async function onRequest(context) {
                 const chatId = settingsObj.telegramChatId;
                 if (!token || !chatId) return new Response(JSON.stringify({ error: 'Telegram not configured' }), { status: 400, headers });
 
-                await db.prepare('INSERT INTO orders (total) VALUES (?)').bind(body.total || 0).run();
-
-                async function fetchWithRetry(url, options, maxRetries = 3) {
-                    for (let i = 0; i < maxRetries; i++) {
-                        try {
-                            const resp = await fetch(url, options);
-                            if (resp.ok) return resp;
-                            if (resp.status === 429) {
-                                await new Promise(r => setTimeout(r, 2000 * (i + 1)));
-                                continue;
-                            }
-                            const err = await resp.json().catch(()=>({description: 'Unknown error'}));
-                            throw new Error(err.description || 'HTTP ' + resp.status);
-                        } catch (err) {
-                            if (i === maxRetries - 1) throw err;
-                            await new Promise(r => setTimeout(r, 1000));
-                        }
-                    }
-                }
-
-                const telegramUrl = 'https://api.telegram.org/bot' + token + '/sendMessage';
-                await fetchWithRetry(telegramUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: chatId, text: body.message, parse_mode: 'Markdown' })
-                });
-
+                // STRICT RULE: If image exists, sendPhoto with Caption. If no image, sendMessage.
                 if (imageFile) {
                     const photoUrl = 'https://api.telegram.org/bot' + token + '/sendPhoto';
                     const photoData = new FormData();
                     photoData.append('chat_id', chatId);
                     photoData.append('photo', imageFile, 'receipt.jpg');
-                    photoData.append('caption', '📸 إيصال الدفع المرفق');
-                    
-                    await fetchWithRetry(photoUrl, {
+                    photoData.append('caption', body.message);
+                    photoData.append('parse_mode', 'Markdown');
+                    await fetchWithRetry(photoUrl, { method: 'POST', body: photoData });
+                } else {
+                    const telegramUrl = 'https://api.telegram.org/bot' + token + '/sendMessage';
+                    await fetchWithRetry(telegramUrl, {
                         method: 'POST',
-                        body: photoData
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ chat_id: chatId, text: body.message, parse_mode: 'Markdown' })
                     });
+                }
+
+                await db.prepare('INSERT INTO orders (total) VALUES (?)').bind(body.total || 0).run();
+
+                try {
+                    await db.prepare("DELETE FROM orders WHERE created_at < datetime('now', '-30 days')").run();
+                } catch (cleanupErr) {
+                    console.error('Cleanup failed:', cleanupErr);
                 }
 
                 return new Response(JSON.stringify({ success: true }), { headers });
             } catch (e) {
-                return new Response(JSON.stringify({ error: 'فشل إرسال الطلب إلى تلغرام: ' + e.message }), { status: 500, headers });
+                return new Response(JSON.stringify({ error: 'فشل إرسال الطلب: ' + e.message }), { status: 500, headers });
             }
         }
 

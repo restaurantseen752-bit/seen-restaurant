@@ -1,4 +1,4 @@
-const CACHE_NAME = 'seen-v3.0'; // نغير الرقم يدويا كلما أردنا إجبار الجميع على التحديث
+const CACHE_NAME = 'seen-v12.0'; // نغير الرقم يدويا كلما أردنا إجبار الجميع على التحديث
 
 self.addEventListener('install', (event) => {
     self.skipWaiting(); // إجبار المتصفح على تفعيل النسخة الجديدة فورا

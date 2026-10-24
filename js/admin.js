@@ -2,6 +2,36 @@
 let currentToken = sessionStorage.getItem('adminToken') || '';
 let currentEditItem = null;
 
+function compressImageForUpload(file, maxWidth = 800, quality = 0.7) {
+    return new Promise((resolve) => {
+        if (!file || !file.type.startsWith('image/')) return resolve(file);
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = event => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const scale = Math.min(maxWidth / img.width, maxWidth / img.height, 1);
+                canvas.width = img.width * scale;
+                canvas.height = img.height * scale;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                canvas.toBlob(blob => {
+                    if (blob) {
+                        resolve(new File([blob], "item.jpg", { type: 'image/jpeg' }));
+                    } else {
+                        resolve(file);
+                    }
+                }, 'image/jpeg', quality);
+            };
+            img.onerror = () => resolve(file);
+        };
+        reader.onerror = () => resolve(file);
+    });
+}
+
+
 // Auto-check if already logged in
 window.addEventListener('DOMContentLoaded', () => {
     if (currentToken) {
@@ -148,7 +178,7 @@ async function addMenuItem() {
     if (!n || !p) { alert('الرجاء إدخال الاسم والسعر'); return; }
     const btn = event.target; btn.innerText = 'جاري الرفع...'; btn.disabled = true;
     if (fileInput.files.length > 0) {
-        const formData = new FormData(); formData.append('image', fileInput.files[0]);
+        const compressed = await compressImageForUpload(fileInput.files[0]); const formData = new FormData(); formData.append('image', compressed);
         try {
             const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
             const uploadData = await uploadRes.json();
@@ -181,7 +211,7 @@ async function saveFullItemEdit() {
     if (!name || !price) { alert('الاسم والسعر مطلوبان'); return; }
     const btn = document.getElementById('btn-save-edit'); btn.innerText = 'جاري الحفظ...'; btn.disabled = true;
     if (fileInput.files.length > 0) {
-        const formData = new FormData(); formData.append('image', fileInput.files[0]);
+        const compressed = await compressImageForUpload(fileInput.files[0]); const formData = new FormData(); formData.append('image', compressed);
         try {
             const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
             const uploadData = await uploadRes.json();
