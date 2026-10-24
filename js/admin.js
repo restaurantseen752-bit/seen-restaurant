@@ -1,24 +1,72 @@
-let currentUser = localStorage.getItem('adminUser') || 'admin';
-let currentPass = localStorage.getItem('adminPass') || '123456';
-let apiPass = "123456"; 
+// Admin panel JS - session-based auth
+let currentToken = localStorage.getItem('adminToken') || '';
 let currentEditItem = null;
 
-function login() {
-    if (document.getElementById('login-user').value === currentUser && document.getElementById('login-pass').value === currentPass) {
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('app-container').style.display = 'flex';
-        fetchData(); 
-    } else { document.getElementById('login-error').style.display = 'block'; }
+// Auto-check if already logged in
+window.addEventListener('DOMContentLoaded', () => {
+    if (currentToken) {
+        const ls = document.getElementById('login-screen');
+        const ac = document.getElementById('app-container');
+        if (ls) ls.style.display = 'none';
+        if (ac) ac.style.display = 'flex';
+        fetchData();
+    }
+});
+
+async function login() {
+    const pass = document.getElementById('login-pass').value;
+    const errEl = document.getElementById('login-error');
+    if (!pass) { errEl.style.display = 'block'; errEl.innerText = 'ادخل كلمة المرور'; return; }
+    errEl.style.display = 'none';
+    try {
+        const res = await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'login', password: pass })
+        });
+        const data = await res.json();
+        if (res.ok && data.token) {
+            currentToken = data.token;
+            localStorage.setItem('adminToken', currentToken);
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app-container').style.display = 'flex';
+            fetchData();
+        } else {
+            errEl.style.display = 'block';
+            errEl.innerText = 'كلمة المرور غير صحيحة';
+        }
+    } catch (e) {
+        errEl.style.display = 'block';
+        errEl.innerText = 'خطأ في الاتصال';
+    }
 }
 
-function logout() { location.reload(); }
+async function logout() {
+    if (currentToken) {
+        try {
+            await fetch('/api/data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'logout', token: currentToken })
+            });
+        } catch (e) {}
+    }
+    localStorage.removeItem('adminToken');
+    currentToken = '';
+    location.reload();
+}
 
 async function fetchData() {
     try {
-        const res = await fetch('/api/data?auth=' + apiPass, { cache: 'no-store' });
+        const res = await fetch('/api/data?token=' + encodeURIComponent(currentToken), { cache: 'no-store' });
         const data = await res.json();
-        if(!data) return;
-        
+        if (!data) return;
+        if (!data.isAdmin) {
+            localStorage.removeItem('adminToken');
+            currentToken = '';
+            location.reload();
+            return;
+        }
         const items = data.items || [];
         const categories = data.categories || [];
         const settings = data.settings || {};
@@ -30,10 +78,7 @@ async function fetchData() {
         document.getElementById('dash-items').innerText = items.length;
 
         const catBody = document.getElementById('category-table-body');
-        catBody.innerHTML = categories.map(cat => `
-            <tr><td>${cat.name}</td><td style="color: ${cat.is_active ? 'var(--success)' : 'var(--danger)'}; font-weight:bold;">${cat.is_active ? '🟢 متاح' : '🔴 غير متوفر'}</td>
-            <td><button class="action-btn ${cat.is_active ? 'btn-delete' : 'btn-edit'}" onclick="toggleCategory('${cat.name}', ${cat.is_active ? 0 : 1})">${cat.is_active ? 'إيقاف' : 'تفعيل'}</button></td></tr>
-        `).join('');
+        catBody.innerHTML = categories.map(cat => `<tr><td>${cat.name}</td><td>${cat.is_active ? '🟢 متاح' : '🔴 غير متوفر'}</td><td><button class="action-btn ${cat.is_active ? 'btn-delete' : 'btn-edit'}" onclick="toggleCategory('${cat.name}', ${cat.is_active ? 0 : 1})">${cat.is_active ? 'إيقاف' : 'تفعيل'}</button></td></tr>`).join('');
 
         const filter = document.getElementById('filter-category').value;
         const filteredItems = filter === 'all' ? items : items.filter(i => i.category === filter);
@@ -41,8 +86,7 @@ async function fetchData() {
         tbody.innerHTML = filteredItems.length ? '' : '<tr><td colspan="4" style="text-align:center;">لا توجد أصناف.</td></tr>';
         filteredItems.forEach(item => {
             const itemData = encodeURIComponent(JSON.stringify(item));
-            tbody.innerHTML += `<tr><td>${item.name}</td><td>${item.price} د.ل</td><td>${item.category}</td>
-            <td><button class="action-btn btn-edit" onclick="openEditModal('${itemData}')">تعديل</button><button class="action-btn btn-delete" onclick="deleteMenuItem(${item.id})">حذف</button></td></tr>`;
+            tbody.innerHTML += `<tr><td>${item.name}</td><td>${item.price} د.ل</td><td>${item.category}</td><td><button class="action-btn btn-edit" onclick="openEditModal('${itemData}')">تعديل</button><button class="action-btn btn-delete" onclick="deleteMenuItem(${item.id})">حذف</button></td></tr>`;
         });
 
         const offersBody = document.getElementById('offers-table-body');
@@ -75,38 +119,44 @@ async function fetchData() {
                 <td>${c.status !== 'finished' ? `<button class="action-btn btn-edit" onclick="setWinner(${c.id})">🏆</button>` : ''}<button class="action-btn btn-delete" onclick="deleteComp(${c.id})">🗑️</button></td>
             </tr>
         `).join('') || '<tr><td colspan="5" style="text-align:center;">لا توجد مسابقات.</td></tr>';
-
-    } catch (e) { console.error(e); }
+    } catch (e) {
+        console.error(e);
+    }
 }
 
 async function sendAction(action, payload) {
     try {
-        const res = await fetch('/api/data', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...payload, action, password: apiPass }) });
+        const res = await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...payload, action, token: currentToken })
+        });
         const data = await res.json();
-        if (res.ok) { await fetchData(); return true; } 
+        if (res.ok) { await fetchData(); return true; }
         else { alert('خطأ: ' + data.error); return false; }
-    } catch (e) { alert('حدث خطأ في الاتصال'); return false; }
+    } catch (e) {
+        alert('حدث خطأ في الاتصال'); return false;
+    }
 }
 
 async function toggleCategory(name, is_active) { if(confirm(`تغيير حالة القسم ${name}؟`)) { const s = await sendAction('toggle_category', { name, is_active }); if (s) alert(`✅ تم التحديث!`); } }
 
-async function addMenuItem() { 
+async function addMenuItem() {
     const n = document.getElementById('item-name').value, p = document.getElementById('item-price').value, c = document.getElementById('item-category').value, d = document.getElementById('item-desc').value;
     const fileInput = document.getElementById('item-img-file');
     let imgUrl = '';
     if (!n || !p) { alert('الرجاء إدخال الاسم والسعر'); return; }
     const btn = event.target; btn.innerText = 'جاري الرفع...'; btn.disabled = true;
-
     if (fileInput.files.length > 0) {
-        const formData = new FormData(); formData.append('image', fileInput.files[0]); formData.append('password', apiPass);
+        const formData = new FormData(); formData.append('image', fileInput.files[0]);
         try {
             const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
             const uploadData = await uploadRes.json();
             if (uploadData.success) imgUrl = uploadData.url;
         } catch (e) { alert('خطأ في رفع الصورة'); btn.innerText = 'إضافة الصنف'; btn.disabled = false; return; }
     }
-    const s = await sendAction('add_item', { name: n, price: p, category: c, description: d, image_url: imgUrl }); 
-    if (s) { document.getElementById('item-name').value = ''; document.getElementById('item-price').value = ''; document.getElementById('item-desc').value = ''; fileInput.value = ''; alert('✅ تمت الإضافة!'); } 
+    const s = await sendAction('add_item', { name: n, price: p, category: c, description: d, image_url: imgUrl });
+    if (s) { document.getElementById('item-name').value = ''; document.getElementById('item-price').value = ''; document.getElementById('item-desc').value = ''; fileInput.value = ''; alert('✅ تمت الإضافة!'); }
     btn.innerText = 'إضافة الصنف'; btn.disabled = false;
 }
 
@@ -118,7 +168,7 @@ function openEditModal(encodedData) {
     document.getElementById('edit-item-category').value = item.category;
     document.getElementById('edit-item-desc').value = item.description || '';
     const imgPreview = document.getElementById('edit-item-img-preview'), btnDeleteImg = document.getElementById('btn-delete-img');
-    if (item.image_url) { imgPreview.src = item.image_url; imgPreview.style.display = 'block'; btnDeleteImg.style.display = 'inline-block'; } 
+    if (item.image_url) { imgPreview.src = item.image_url; imgPreview.style.display = 'block'; btnDeleteImg.style.display = 'inline-block'; }
     else { imgPreview.style.display = 'none'; btnDeleteImg.style.display = 'none'; }
     document.getElementById('edit-item-img-file').value = '';
     document.getElementById('edit-item-modal').style.display = 'flex';
@@ -130,9 +180,8 @@ async function saveFullItemEdit() {
     let imgUrl = currentEditItem ? currentEditItem.image_url : '';
     if (!name || !price) { alert('الاسم والسعر مطلوبان'); return; }
     const btn = document.getElementById('btn-save-edit'); btn.innerText = 'جاري الحفظ...'; btn.disabled = true;
-
     if (fileInput.files.length > 0) {
-        const formData = new FormData(); formData.append('image', fileInput.files[0]); formData.append('password', apiPass);
+        const formData = new FormData(); formData.append('image', fileInput.files[0]);
         try {
             const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
             const uploadData = await uploadRes.json();
@@ -152,14 +201,49 @@ async function addDeliveryArea() { const n = document.getElementById('delivery-n
 async function deleteDeliveryArea(id) { if (confirm('حذف المنطقة؟')) { const s = await sendAction('delete_delivery_area', { id }); if (s) alert('✅ تم الحذف!'); } }
 async function closeRestaurant() { const t = document.getElementById('announcementInput').value; if (!t) return alert('اكتب سبب الإغلاق'); await sendAction('update_setting', { key: 'status', value: 'closed' }); const s = await sendAction('update_setting', { key: 'announcement', value: t }); if (s) alert('✅ تم الإغلاق!'); }
 async function openRestaurant() { if (confirm('فتح المطعم؟')) { await sendAction('update_setting', { key: 'status', value: 'open' }); const s = await sendAction('update_setting', { key: 'announcement', value: '' }); if (s) alert('✅ تم الفتح!'); } }
-async function saveContactInfo() { 
+
+async function saveContactInfo() {
     const btn = event.target; btn.innerText = 'جاري الحفظ...'; btn.disabled = true;
     try {
-        const res = await fetch('/api/data', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'update_all_settings', password: apiPass, phone: document.getElementById('set-phone').value, address: document.getElementById('set-address').value, telegramToken: document.getElementById('set-telegram-token').value, telegramChatId: document.getElementById('set-telegram-chatid').value, prepayment_info: document.getElementById('set-prepayment').value }) });
+        const res = await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'update_all_settings',
+                token: currentToken,
+                phone: document.getElementById('set-phone').value,
+                address: document.getElementById('set-address').value,
+                telegramToken: document.getElementById('set-telegram-token').value,
+                telegramChatId: document.getElementById('set-telegram-chatid').value,
+                prepayment_info: document.getElementById('set-prepayment').value
+            })
+        });
         if (res.ok) alert('✅ تم حفظ الإعدادات بنجاح!'); else alert('حدث خطأ أثناء الحفظ.');
     } catch(e) { alert('حدث خطأ في الاتصال.'); } finally { btn.innerText = 'حفظ الإعدادات'; btn.disabled = false; }
 }
-function saveCredentials() { const u = document.getElementById('new-username').value, p = document.getElementById('new-password').value; if (u && p) { localStorage.setItem('adminUser', u); localStorage.setItem('adminPass', p); currentUser = u; currentPass = p; alert('✅ تم تحديث بيانات الدخول!'); document.getElementById('new-username').value = ''; document.getElementById('new-password').value = ''; } }
+
+async function saveCredentials() {
+    const p = document.getElementById('new-password').value;
+    if (!p) { alert('ادخل كلمة المرور الجديدة'); return; }
+    if (p.length < 6) { alert('كلمة المرور يجب أن تكون 6 أحرف على الأقل'); return; }
+    if (!confirm('تغيير كلمة المرور؟ سيتم تسجيل خروجك من جميع الأجهزة.')) return;
+    try {
+        const res = await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'change_password', token: currentToken, new_password: p })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            alert('✅ تم تغيير كلمة المرور! سيتم تسجيل خروجك الآن.');
+            localStorage.removeItem('adminToken');
+            location.reload();
+        } else {
+            alert('خطأ: ' + (data.error || 'فشل التغيير'));
+        }
+    } catch (e) { alert('حدث خطأ في الاتصال'); }
+}
+
 async function addCompetition() { const t = document.getElementById('comp-title').value, p = document.getElementById('comp-prize').value, d = document.getElementById('comp-duration').value; if (t && p && d) { const s = await sendAction('add_competition', { title: t, prize: p, duration: d }); if (s) { document.getElementById('comp-title').value = ''; document.getElementById('comp-prize').value = ''; document.getElementById('comp-duration').value = ''; alert('✅ تمت الإضافة!'); } } }
 async function deleteComp(id) { if (confirm('حذف؟')) { const s = await sendAction('delete_competition', { id }); if (s) alert('✅ تم الحذف!'); } }
 async function setWinner(id) { let w = prompt('اسم الفائز:'); if (w) { const s = await sendAction('set_winner', { id, winner: w }); if (s) alert('✅ تم تسجيل الفائز!'); } }

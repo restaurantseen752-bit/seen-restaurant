@@ -1,3 +1,10 @@
 .wrangler/
 node_modules/
 .env
+.env.*
+*.tar.gz
+*.log
+.check.mjs
+migrations/gen-hash.js
+migrations/002_insert_admin_hash.sql
+migrations/verify_hash.sh
