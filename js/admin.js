@@ -188,7 +188,7 @@ async function saveFullItemEdit() {
             if (uploadData.success) imgUrl = uploadData.url;
         } catch (e) { alert('خطأ في رفع الصورة'); btn.innerText = 'حفظ التعديلات'; btn.disabled = false; return; }
     }
-    const s = await sendAction('update_full_item', { id, name, price, category, description: desc, image_url: imgUrl });
+    const s = await sendAction('update_full_item', { id, name, price, category, description: desc, image_url: imgUrl, old_image_url: currentEditItem ? currentEditItem.image_url : '' });
     if (s) { alert('✅ تم حفظ التعديلات بنجاح!'); document.getElementById('edit-item-modal').style.display = 'none'; }
     btn.innerText = 'حفظ التعديلات'; btn.disabled = false;
 }

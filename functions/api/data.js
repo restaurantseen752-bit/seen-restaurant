@@ -48,6 +48,36 @@ async function makeNewCredentials(db, newPassword) {
     await db.prepare('UPDATE admin_credentials SET password_hash = ?, salt = ?, updated_at = ? WHERE id = 1').bind(hash, saltB64, now).run();
 }
 
+
+async function deleteImageFromGitHub(env, imageUrl) {
+    if (!imageUrl || !imageUrl.includes('jsdelivr.net/gh/')) return;
+    try {
+        const parts = imageUrl.split('/');
+        const filename = parts[parts.length - 1];
+        const owner = env.GITHUB_OWNER;
+        const repo = env.GITHUB_REPO;
+        const token = env.GITHUB_TOKEN;
+        if (!owner || !repo || !token) return;
+
+        const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filename}`;
+        const getRes = await fetch(getUrl, {
+            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'CF-Worker' }
+        });
+        
+        if (getRes.ok) {
+            const fileData = await getRes.json();
+            const deleteUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filename}`;
+            await fetch(deleteUrl, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json', 'User-Agent': 'CF-Worker' },
+                body: JSON.stringify({ message: `Delete ${filename}`, sha: fileData.sha })
+            });
+        }
+    } catch (e) {
+        console.error('Failed to delete old image:', e);
+    }
+}
+
 export async function onRequest(context) {
     const { request, env } = context;
     const db = env.DB;
@@ -212,7 +242,12 @@ export async function onRequest(context) {
             }
             if (body.action === 'add_item') await db.prepare('INSERT INTO items (name, price, category, description, image_url) VALUES (?, ?, ?, ?, ?)').bind(body.name, body.price, body.category, body.description, body.image_url).run();
             else if (body.action === 'delete_item') await db.prepare('DELETE FROM items WHERE id = ?').bind(body.id).run();
-            else if (body.action === 'update_full_item') await db.prepare('UPDATE items SET name = ?, price = ?, category = ?, description = ?, image_url = ? WHERE id = ?').bind(body.name, body.price, body.category, body.description, body.image_url, body.id).run();
+            else if (body.action === 'update_full_item') {
+                if (body.old_image_url && body.old_image_url !== body.image_url) {
+                    await deleteImageFromGitHub(env, body.old_image_url);
+                }
+                await db.prepare('UPDATE items SET name = ?, price = ?, category = ?, description = ?, image_url = ? WHERE id = ?').bind(body.name, body.price, body.category, body.description, body.image_url, body.id).run();
+            }
             else if (body.action === 'update_setting') await db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').bind(body.key, body.value).run();
             else if (body.action === 'toggle_category') await db.prepare('UPDATE categories SET is_active = ? WHERE name = ?').bind(body.is_active, body.name).run();
             else if (body.action === 'add_delivery_area') await db.prepare('INSERT INTO delivery_areas (name, fee) VALUES (?, ?)').bind(body.name, body.fee).run();
