@@ -3,7 +3,7 @@
 
 async function hashPassword(password, saltB64) {
     const enc = new TextEncoder();
-    const salt = Uint8Array.from(atob(saltB64), c => c.charCodeAt(0));
+    const salt = enc.encode(saltB64);
     const key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
     const bits = await crypto.subtle.deriveBits(
         { name: 'PBKDF2', salt: salt, iterations: 100000, hash: 'SHA-256' },

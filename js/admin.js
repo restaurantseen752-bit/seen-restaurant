@@ -1,5 +1,5 @@
 // Admin panel JS - session-based auth
-let currentToken = localStorage.getItem('adminToken') || '';
+let currentToken = sessionStorage.getItem('adminToken') || '';
 let currentEditItem = null;
 
 // Auto-check if already logged in
@@ -27,7 +27,7 @@ async function login() {
         const data = await res.json();
         if (res.ok && data.token) {
             currentToken = data.token;
-            localStorage.setItem('adminToken', currentToken);
+            sessionStorage.setItem('adminToken', currentToken);
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('app-container').style.display = 'flex';
             fetchData();
@@ -51,7 +51,7 @@ async function logout() {
             });
         } catch (e) {}
     }
-    localStorage.removeItem('adminToken');
+    sessionStorage.removeItem('adminToken');
     currentToken = '';
     location.reload();
 }
@@ -62,7 +62,7 @@ async function fetchData() {
         const data = await res.json();
         if (!data) return;
         if (!data.isAdmin) {
-            localStorage.removeItem('adminToken');
+            sessionStorage.removeItem('adminToken');
             currentToken = '';
             location.reload();
             return;
@@ -236,7 +236,7 @@ async function saveCredentials() {
         const data = await res.json();
         if (res.ok) {
             alert('✅ تم تغيير كلمة المرور! سيتم تسجيل خروجك الآن.');
-            localStorage.removeItem('adminToken');
+            sessionStorage.removeItem('adminToken');
             location.reload();
         } else {
             alert('خطأ: ' + (data.error || 'فشل التغيير'));
@@ -251,3 +251,23 @@ async function setWinner(id) { let w = prompt('اسم الفائز:'); if (w) { 
 function showSection(id, el) { document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('.sidebar a').forEach(l => l.classList.remove('active')); el.classList.add('active'); if (window.innerWidth <= 768) closeMenu(); }
 function openMenu() { document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('active'); }
 function closeMenu() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('active'); }
+
+// Service Worker Update Logic for Admin
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js').then(reg => {
+            reg.onupdatefound = () => {
+                const installingWorker = reg.installing;
+                if (installingWorker) {
+                    installingWorker.onstatechange = () => {
+                        if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            if (confirm('تم تحديث لوحة التحكم! اضغط موافق لإعادة التحميل وتطبيق النسخة الجديدة.')) {
+                                window.location.reload();
+                            }
+                        }
+                    };
+                }
+            };
+        }).catch(err => console.log('SW Reg Error', err));
+    });
+}

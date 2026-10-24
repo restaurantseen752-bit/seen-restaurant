@@ -71,3 +71,23 @@ function installApp() {
         });
     }
 }
+
+// Service Worker Update Logic for Customer
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js').then(reg => {
+            reg.onupdatefound = () => {
+                const installingWorker = reg.installing;
+                if (installingWorker) {
+                    installingWorker.onstatechange = () => {
+                        if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            if (confirm('تم تحديث التطبيق! اضغط موافق لإعادة التحميل للحصول على أحدث القائمة.')) {
+                                window.location.reload();
+                            }
+                        }
+                    };
+                }
+            };
+        }).catch(err => console.log('SW Reg Error', err));
+    });
+}
