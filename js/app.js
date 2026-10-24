@@ -110,7 +110,7 @@ function closeCart() { document.getElementById('cart-modal').style.display = 'no
 function removeFromCart(id) { cart = cart.filter(i => String(i.id) !== String(id)); updateCartUI(); if (cart.length === 0) closeCart(); else openCart(); }
 function updateCartUI() {
     const totalItems = cart.reduce((sum, item) => sum + item.qty, 0); const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-    document.getElementById('cart-count').innerText = totalItems; document.getElementById('cart-total').innerText = totalPrice; document.getElementById('modal-total').innerText = totalPrice;
+    document.getElementById('cart-count').innerText = totalItems; document.getElementById('cart-total').innerText = totalPrice; document.getElementById('summary-total').innerText = totalPrice;
     if (totalItems > 0) document.getElementById('cart-bar').style.display = 'flex'; else document.getElementById('cart-bar').style.display = 'none';
 }
 function addToCart(id) { const item = allMenuItems.find(i => i.id === id); const existing = cart.find(i => i.id === id); if (existing) { existing.qty++; showToast(`تمت إضافة ${item.name}`); } else { cart.push({ ...item, qty: 1 }); showToast(`تم اختيار ${item.name}`); } updateCartUI(); }
