@@ -97,9 +97,23 @@ export async function onRequest(context) {
     }
 
     if (request.method === 'POST') {
-        let body;
-        try { body = await request.json(); }
-        catch (e) { return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers }); }
+        let body = {};
+        let imageFile = null;
+        const contentType = request.headers.get('content-type') || '';
+        
+        if (contentType.includes('multipart/form-data')) {
+            const formData = await request.formData();
+            body.action = formData.get('action');
+            body.total = formData.get('total');
+            body.message = formData.get('message');
+            body.token = formData.get('token');
+            body.password = formData.get('password');
+            body.new_password = formData.get('new_password');
+            imageFile = formData.get('image');
+        } else {
+            try { body = await request.json(); }
+            catch (e) { return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers }); }
+        }
 
         if (body.action === 'login') {
             if (!body.password) return new Response(JSON.stringify({ error: 'Password required' }), { status: 400, headers });
@@ -133,30 +147,49 @@ export async function onRequest(context) {
                 const chatId = settingsObj.telegramChatId;
                 if (!token || !chatId) return new Response(JSON.stringify({ error: 'Telegram not configured' }), { status: 400, headers });
 
+                await db.prepare('INSERT INTO orders (total) VALUES (?)').bind(body.total || 0).run();
+
+                async function fetchWithRetry(url, options, maxRetries = 3) {
+                    for (let i = 0; i < maxRetries; i++) {
+                        try {
+                            const resp = await fetch(url, options);
+                            if (resp.ok) return resp;
+                            if (resp.status === 429) {
+                                await new Promise(r => setTimeout(r, 2000 * (i + 1)));
+                                continue;
+                            }
+                            const err = await resp.json().catch(()=>({description: 'Unknown error'}));
+                            throw new Error(err.description || 'HTTP ' + resp.status);
+                        } catch (err) {
+                            if (i === maxRetries - 1) throw err;
+                            await new Promise(r => setTimeout(r, 1000));
+                        }
+                    }
+                }
+
                 const telegramUrl = 'https://api.telegram.org/bot' + token + '/sendMessage';
-                const response = await fetch(telegramUrl, {
+                await fetchWithRetry(telegramUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ chat_id: chatId, text: body.message, parse_mode: 'Markdown' })
                 });
 
-                if (response.ok) {
-                    if (body.receipt_url) {
-                        const photoUrl = 'https://api.telegram.org/bot' + token + '/sendPhoto';
-                        await fetch(photoUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ chat_id: chatId, photo: body.receipt_url, caption: 'Receipt attached' })
-                        });
-                    }
-                    await db.prepare('INSERT INTO orders (total) VALUES (?)').bind(body.total || 0).run();
-                    return new Response(JSON.stringify({ success: true }), { headers });
-                } else {
-                    const tgResponse = await response.json();
-                    return new Response(JSON.stringify({ error: 'Telegram error: ' + tgResponse.description }), { status: 500, headers });
+                if (imageFile) {
+                    const photoUrl = 'https://api.telegram.org/bot' + token + '/sendPhoto';
+                    const photoData = new FormData();
+                    photoData.append('chat_id', chatId);
+                    photoData.append('photo', imageFile, 'receipt.jpg');
+                    photoData.append('caption', '📸 إيصال الدفع المرفق');
+                    
+                    await fetchWithRetry(photoUrl, {
+                        method: 'POST',
+                        body: photoData
+                    });
                 }
+
+                return new Response(JSON.stringify({ success: true }), { headers });
             } catch (e) {
-                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+                return new Response(JSON.stringify({ error: 'فشل إرسال الطلب إلى تلغرام: ' + e.message }), { status: 500, headers });
             }
         }
 

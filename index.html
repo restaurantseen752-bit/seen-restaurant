@@ -100,10 +100,22 @@
                 </select>
             </div>
 
-            <input type="text" id="customer-name" placeholder="الاسم الثلاثي" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #333; background:#222; color:#fff;">
-            <input type="tel" id="customer-phone" inputmode="numeric" placeholder="رقم الهاتف" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #333; background:#222; color:#fff;">
-            <input type="text" id="customer-address" placeholder="العنوان بالتفصيل (الشارع، العمارة...)" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #333; background:#222; color:#fff;">
-            <textarea id="order-notes" placeholder="ملاحظات إضافية..." rows="2" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid #333; background:#222; color:#fff;"></textarea>
+            <div style="margin-bottom:12px;">
+                <label style="color:#f39c12; font-weight:bold; display:block; margin-bottom:5px;">الاسم الثلاثي:</label>
+                <input type="text" id="customer-name" placeholder="أدخل اسمك الثلاثي" style="width:100%; padding:12px; border-radius:8px; border:1px solid #333; background:#222; color:#fff; box-sizing:border-box;">
+            </div>
+            <div style="margin-bottom:12px;">
+                <label style="color:#f39c12; font-weight:bold; display:block; margin-bottom:5px;">رقم الهاتف:</label>
+                <input type="tel" id="customer-phone" inputmode="numeric" placeholder="09XXXXXXXX" style="width:100%; padding:12px; border-radius:8px; border:1px solid #333; background:#222; color:#fff; box-sizing:border-box;">
+            </div>
+            <div style="margin-bottom:12px;">
+                <label style="color:#f39c12; font-weight:bold; display:block; margin-bottom:5px;">العنوان بالتفصيل:</label>
+                <input type="text" id="customer-address" placeholder="الشارع، العمارة، علامة مميزة..." style="width:100%; padding:12px; border-radius:8px; border:1px solid #333; background:#222; color:#fff; box-sizing:border-box;">
+            </div>
+            <div style="margin-bottom:12px;">
+                <label style="color:#f39c12; font-weight:bold; display:block; margin-bottom:5px;">ملاحظات إضافية (اختياري):</label>
+                <textarea id="order-notes" placeholder="أي تفاصيل تود إضافتها..." rows="2" style="width:100%; padding:12px; border-radius:8px; border:1px solid #333; background:#222; color:#fff; box-sizing:border-box;"></textarea>
+            </div>
 
             <div class="form-group">
                 <label style="color:#f39c12; font-weight:bold; display:block; margin-bottom:5px;">طريقة الدفع:</label>
@@ -113,11 +125,12 @@
                 </select>
             </div>
 
-            <div id="prepayment-section" style="display:none; background:#222; padding:10px; border-radius:8px; margin-bottom:10px; border:1px solid #f39c12;">
-                <p style="color:#f39c12; font-size:12px; margin-bottom:5px; font-weight:bold;">معلومات الدفع:</p>
-                <p id="prepayment-info-text" style="color:#fff; font-size:14px; margin-bottom:10px;"></p>
+            <div id="prepayment-section" style="display:none; background:#222; padding:15px; border-radius:8px; margin-bottom:12px; border:1px dashed #f39c12;">
+                <p style="color:#f39c12; font-size:14px; margin:0 0 8px 0; font-weight:bold;">معلومات الدفع المسبق:</p>
+                <p id="prepayment-info-text" style="color:#fff; font-size:13px; margin-bottom:15px; line-height:1.5;"></p>
+                <label style="color:#fff; font-size:13px; display:block; margin-bottom:8px; font-weight:bold;">⚠️ الرجاء رفع صورة إيصال الدفع لإتمام الطلب:</label>
                 <label style="color:#fff; font-size:12px; display:block; margin-bottom:5px;">ارفع صورة الإيصال (إجباري):</label>
-                <input type="file" id="receipt-upload" accept="image/*" style="width:100%; padding:8px; background:#111; border:1px solid #444; border-radius:5px; color:#fff;">
+                <input type="file" id="receipt-upload" accept="image/*" style="width:100%; color:#aaa; font-size:12px; background:#1a1a1a; padding:10px; border-radius:8px; border:1px solid #444; box-sizing:border-box;">
             </div>
 
             <div style="background:#111; padding:15px; border-radius:10px; margin-bottom:15px;">

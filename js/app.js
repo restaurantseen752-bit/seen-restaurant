@@ -116,23 +116,107 @@ function updateCartUI() {
 function addToCart(id) { const item = allMenuItems.find(i => i.id === id); const existing = cart.find(i => i.id === id); if (existing) { existing.qty++; showToast(`تمت إضافة ${item.name}`); } else { cart.push({ ...item, qty: 1 }); showToast(`تم اختيار ${item.name}`); } updateCartUI(); }
 function addOfferToCart(id, name, price) { const offerId = 'offer_' + id; const existing = cart.find(i => i.id === offerId); if (existing) { existing.qty++; showToast(`تمت إضافة ${name}`); } else { cart.push({ id: offerId, name: name, price: price, qty: 1 }); showToast(`تم اختيار العرض: ${name}`); } updateCartUI(); }
 
+
+function compressImage(file, maxWidth = 800, quality = 0.7) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = event => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const scale = Math.min(maxWidth / img.width, 1);
+                canvas.width = img.width * scale;
+                canvas.height = img.height * scale;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                canvas.toBlob(blob => {
+                    const compressedFile = new File([blob], "receipt.jpg", { type: 'image/jpeg', lastModified: Date.now() });
+                    resolve(compressedFile);
+                }, 'image/jpeg', quality);
+            };
+            img.onerror = reject;
+        };
+        reader.onerror = reject;
+    });
+}
+
 async function sendOrder() {
-    const name = document.getElementById('customer-name').value; const phone = document.getElementById('customer-phone').value.replace(/[^0-9+]/g, ''); const address = document.getElementById('customer-address').value; const notes = document.getElementById('order-notes').value; const paymentMethod = document.getElementById('payment-method').value; const receiptFile = document.getElementById('receipt-upload').files[0];
+    const name = document.getElementById('customer-name').value;
+    const phone = document.getElementById('customer-phone').value.replace(/[^0-9+]/g, '');
+    const address = document.getElementById('customer-address').value;
+    const notes = document.getElementById('order-notes').value;
+    const paymentMethod = document.getElementById('payment-method').value;
+    const receiptFile = document.getElementById('receipt-upload').files[0];
+
     if (!name || !phone || !address) { alert('الرجاء إدخال الاسم ورقم الهاتف والعنوان'); return; }
     if (paymentMethod === 'prepayment' && !receiptFile) { alert('الرجاء رفع صورة إيصال الدفع المسبق.'); return; }
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0); const deliveryFee = parseFloat(document.getElementById('delivery-select').value) || 0; const total = subtotal + deliveryFee; let receiptUrl = '';
-    const btn = document.getElementById('send-order-btn'); btn.innerText = 'جاري الإرسال...'; btn.disabled = true;
+
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    const deliveryFee = parseFloat(document.getElementById('delivery-select').value) || 0;
+    const total = subtotal + deliveryFee;
+    
+    const btn = document.getElementById('send-order-btn');
+    btn.innerText = 'جاري الإرسال...'; btn.disabled = true;
+
+    const formData = new FormData();
+    formData.append('action', 'send_telegram');
+    formData.append('total', total);
+
+    let message = `*طلب جديد من مطعم سين*
+
+👤 *الاسم:* ${name}
+📞 *الهاتف:* ${phone}
+📍 *العنوان:* ${address}
+📝 *ملاحظات:* ${notes || 'لا يوجد'}
+💳 *الدفع:* ${paymentMethod === 'prepayment' ? 'مسبق' : 'عند الاستلام'}
+
+*الطلبات:*
+`;
+    cart.forEach(item => { message += `▪️ ${item.name} (${item.qty}) - ${item.price * item.qty} د.ل
+`; });
+    message += `
+💰 *المجموع الفرعي:* ${subtotal} د.ل
+🛵 *التوصيل:* ${deliveryFee} د.ل
+💵 *الإجمالي:* ${total} د.ل`;
+
+    formData.append('message', message);
+
     if (receiptFile) {
-        const formData = new FormData(); formData.append('image', receiptFile);
-        try { const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData }); const uploadData = await uploadRes.json(); if(uploadData.success) receiptUrl = uploadData.url; else { alert('فشل رفع الإيصال'); btn.disabled = false; btn.innerText = 'تأكيد الطلب'; return; } } 
-        catch(e) { alert('خطأ في رفع الإيصال'); btn.disabled = false; btn.innerText = 'تأكيد الطلب'; return; }
+        try {
+            const compressedImage = await compressImage(receiptFile);
+            formData.append('image', compressedImage);
+        } catch (e) {
+            console.error("Compression failed, sending original", e);
+            formData.append('image', receiptFile);
+        }
     }
-    let message = `*طلب جديد من مطعم سين*\n\n👤 *الاسم:* ${name}\n📞 *الهاتف:* ${phone}\n📍 *العنوان:* ${address}\n📝 *ملاحظات:* ${notes || 'لا يوجد'}\n💳 *الدفع:* ${paymentMethod === 'prepayment' ? 'مسبق' : 'عند الاستلام'}\n\n*الطلبات:*\n`;
-    cart.forEach(item => { message += `▪️ ${item.name} (${item.qty}) - ${item.price * item.qty} د.ل\n`; });
-    message += `\n💰 *المجموع الفرعي:* ${subtotal} د.ل\n🛵 *التوصيل:* ${deliveryFee} د.ل\n💵 *الإجمالي:* ${total} د.ل`;
+
     try {
-        const res = await fetch('/api/data', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'send_telegram', message: message, total: total, receipt_url: receiptUrl }) });
-        if (res.ok) { closeCart(); document.getElementById('success-modal').style.display = 'flex'; cart = []; updateCartUI(); document.getElementById('customer-name').value = ''; document.getElementById('customer-phone').value = ''; document.getElementById('customer-address').value = ''; document.getElementById('order-notes').value = ''; } 
-        else { alert('حدث خطأ أثناء إرسال الطلب.'); }
-    } catch (e) { alert('حدث خطأ في الاتصال.'); } finally { btn.innerText = 'تأكيد الطلب'; btn.disabled = false; }
+        const res = await fetch('/api/data', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (res.ok) {
+            closeCart(); 
+            document.getElementById('success-modal').style.display = 'flex'; 
+            cart = []; 
+            updateCartUI();
+            document.getElementById('customer-name').value = ''; 
+            document.getElementById('customer-phone').value = ''; 
+            document.getElementById('customer-address').value = ''; 
+            document.getElementById('order-notes').value = '';
+            document.getElementById('receipt-upload').value = '';
+        } else {
+            const errData = await res.json().catch(()=>({}));
+            alert('حدث خطأ أثناء إرسال الطلب: ' + (errData.error || 'يرجى المحاولة لاحقاً'));
+        }
+    } catch (e) {
+        alert('⚠️ فشل الإرسال: يرجى التأكد من اتصالك بالإنترنت والمحاولة مرة أخرى.');
+    } finally {
+        btn.innerText = 'تأكيد الطلب'; 
+        btn.disabled = false;
+    }
 }
