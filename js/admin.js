@@ -116,7 +116,10 @@ async function fetchData() {
         tbody.innerHTML = filteredItems.length ? '' : '<tr><td colspan="4" style="text-align:center;">لا توجد أصناف.</td></tr>';
         filteredItems.forEach(item => {
             const itemData = encodeURIComponent(JSON.stringify(item));
-            tbody.innerHTML += `<tr><td>${item.name}</td><td>${item.price} د.ل</td><td>${item.category}</td><td><button class="action-btn btn-edit" onclick="openEditModal('${itemData}')">تعديل</button><button class="action-btn btn-delete" onclick="deleteMenuItem(${item.id})">حذف</button></td></tr>`;
+            const statusBtn = item.is_active === 0 
+                ? `<button class="action-btn btn-edit" style="background:#2ecc71; color:#fff; border:none;" onclick="toggleItem(${item.id}, 1)">تفعيل</button>` 
+                : `<button class="action-btn btn-delete" style="background:#f39c12; color:#000;" onclick="toggleItem(${item.id}, 0)">إيقاف</button>`;
+            tbody.innerHTML += `<tr><td style="${item.is_active === 0 ? 'opacity:0.5;' : ''}">${item.name}</td><td>${item.price} د.ل</td><td>${item.category}</td><td style="display:flex; gap:5px;"><button class="action-btn btn-edit" onclick="openEditModal('${itemData}')">تعديل</button><button class="action-btn btn-delete" onclick="deleteMenuItem(${item.id})">حذف</button>${statusBtn}</td></tr>`;
         });
 
         const offersBody = document.getElementById('offers-table-body');
@@ -300,4 +303,11 @@ if ('serviceWorker' in navigator) {
             };
         }).catch(err => console.log('SW Reg Error', err));
     });
+}
+
+async function toggleItem(id, is_active) {
+    if(confirm(`هل أنت متأكد من ${is_active ? 'تفعيل' : 'إيقاف'} هذا الصنف؟`)) {
+        const s = await sendAction('toggle_item', { id, is_active });
+        if (s) alert(`✅ تم ${is_active ? 'تفعيل' : 'إيقاف'} الصنف!`);
+    }
 }

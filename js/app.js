@@ -61,6 +61,19 @@ function renderCustomerMenu(items, categories) {
         }
 
         let itemsHtml = catItems.map(item => {
+            if (item.is_active === 0) {
+                return `<div class="menu-item" style="display:flex; justify-content:space-between; align-items:center; padding: 12px 0; border-bottom: 1px dashed #444; gap: 10px; opacity: 0.7;">
+                            <div style="flex: 1; min-width: 0;">
+                                <span class="item-name" style="display:block; color:#fff; font-weight:bold; word-break: break-word;">${item.name}</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:12px; flex-shrink: 0;">
+                                <span style="color:#e74c3c; font-weight:bold; white-space: nowrap; font-size:12px; background:rgba(231,76,60,0.15); border:1px solid rgba(231,76,60,0.3); padding:4px 10px; border-radius:8px; display:flex; flex-direction:column; align-items:center; line-height:1.2;">
+                                    <span>نفدت الكمية</span>
+                                    <span style="font-size:10px; color:#ff9999;">غير متوفر</span>
+                                </span>
+                            </div>
+                        </div>`;
+            }
             const hasDetails = (item.description && item.description.trim() !== '') || (item.image_url && item.image_url.trim() !== '');
             
             // If hasDetails is true, show details button and HIDE the + button.
@@ -146,8 +159,33 @@ function updateCartUI() {
     document.getElementById('cart-count').innerText = totalItems; document.getElementById('cart-total').innerText = totalPrice; document.getElementById('summary-total').innerText = totalPrice;
     if (totalItems > 0) document.getElementById('cart-bar').style.display = 'flex'; else document.getElementById('cart-bar').style.display = 'none';
 }
-function addToCart(id) { const item = allMenuItems.find(i => i.id === id); const existing = cart.find(i => i.id === id); if (existing) { existing.qty++; showToast(`تمت إضافة ${item.name}`); } else { cart.push({ ...item, qty: 1 }); showToast(`تم اختيار ${item.name}`); } updateCartUI(); }
-function addOfferToCart(id, name, price) { const offerId = 'offer_' + id; const existing = cart.find(i => i.id === offerId); if (existing) { existing.qty++; showToast(`تمت إضافة ${name}`); } else { cart.push({ id: offerId, name: name, price: price, qty: 1 }); showToast(`تم اختيار العرض: ${name}`); } updateCartUI(); }
+
+function showClosedModal() {
+    let modal = document.getElementById('closed-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'closed-modal';
+        modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:99999; display:flex; justify-content:center; align-items:center; padding:20px; backdrop-filter: blur(5px);';
+        modal.innerHTML = `
+            <div style="background:linear-gradient(145deg, #1f1f1f, #141414); border:2px solid #f39c12; border-radius:20px; padding:30px 20px; text-align:center; max-width:350px; width:100%; box-shadow: 0 10px 30px rgba(243,156,18,0.2); position:relative; animation: popIn 0.3s ease;">
+                <button onclick="document.getElementById('closed-modal').style.display='none'" style="position:absolute; top:10px; right:15px; background:none; border:none; color:#aaa; font-size:26px; cursor:pointer;">&times;</button>
+                <div style="font-size:55px; margin-bottom:15px;">🙏</div>
+                <p style="color:#f39c12; font-size:18px; font-weight:bold; margin:0 0 20px 0; line-height:1.6;">نعتذر منك، المطعم مغلق حالياً</p>
+                <button onclick="document.getElementById('closed-modal').style.display='none'" style="background:#2ecc71; color:#000; border:none; padding:12px 25px; border-radius:12px; font-weight:bold; font-size:16px; cursor:pointer; width:100%; box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3);">حسناً، فهمت</button>
+            </div>
+            <style>@keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }</style>
+        `;
+        document.body.appendChild(modal);
+    }
+    modal.style.display = 'flex';
+}
+
+function addToCart(id) { 
+    if (currentSettings.status === 'closed') { showClosedModal(); return; }
+    const item = allMenuItems.find(i => i.id === id); const existing = cart.find(i => i.id === id); if (existing) { existing.qty++; showToast(`تمت إضافة ${item.name}`); } else { cart.push({ ...item, qty: 1 }); showToast(`تم اختيار ${item.name}`); } updateCartUI(); }
+function addOfferToCart(id, name, price) { 
+    if (currentSettings.status === 'closed') { showClosedModal(); return; }
+    const offerId = 'offer_' + id; const existing = cart.find(i => i.id === offerId); if (existing) { existing.qty++; showToast(`تمت إضافة ${name}`); } else { cart.push({ id: offerId, name: name, price: price, qty: 1 }); showToast(`تم اختيار العرض: ${name}`); } updateCartUI(); }
 
 
 function compressImage(file, maxWidth = 800, quality = 0.7) {
@@ -249,6 +287,10 @@ async function sendOrder() {
     const paymentMethod = document.getElementById('payment-method').value;
     const receiptFile = document.getElementById('receipt-upload').files[0];
 
+    if (currentSettings.status === 'closed') {
+        alert('عذراً، المطعم مغلق حالياً. ' + (currentSettings.announcement || ''));
+        return;
+    }
     const deliverySelectVal = document.getElementById('delivery-select').value;
     if (deliverySelectVal === "") { alert('الرجاء اختيار طريقة الاستلام (توصيل أو استلام من المطعم)'); return; }
     if (!name || !phone || !address) { alert('الرجاء إدخال الاسم ورقم الهاتف والعنوان'); return; }

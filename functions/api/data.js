@@ -187,6 +187,12 @@ export async function onRequest(context) {
                 const chatId = settingsObj.telegramChatId;
                 if (!token || !chatId) return new Response(JSON.stringify({ error: 'Telegram not configured' }), { status: 400, headers });
 
+                const statusRes = await db.prepare('SELECT value FROM settings WHERE key = ?').bind('status').first();
+                if (statusRes && statusRes.value === 'closed') {
+                    return new Response(JSON.stringify({ error: 'عذراً، المطعم مغلق حالياً ولا يمكن استقبال الطلبات.' }), { status: 400, headers });
+                }
+
+
                 // STRICT RULE: If image exists, sendPhoto with Caption. If no image, sendMessage.
                 if (imageFile) {
                     const photoUrl = 'https://api.telegram.org/bot' + token + '/sendPhoto';
@@ -245,6 +251,7 @@ export async function onRequest(context) {
                 await db.prepare('UPDATE items SET name = ?, price = ?, category = ?, description = ?, image_url = ? WHERE id = ?').bind(body.name, body.price, body.category, body.description, body.image_url, body.id).run();
             }
             else if (body.action === 'update_setting') await db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').bind(body.key, body.value).run();
+            else if (body.action === 'toggle_item') await db.prepare('UPDATE items SET is_active = ? WHERE id = ?').bind(body.is_active, body.id).run();
             else if (body.action === 'toggle_category') await db.prepare('UPDATE categories SET is_active = ? WHERE name = ?').bind(body.is_active, body.name).run();
             else if (body.action === 'add_delivery_area') await db.prepare('INSERT INTO delivery_areas (name, fee) VALUES (?, ?)').bind(body.name, body.fee).run();
             else if (body.action === 'delete_delivery_area') await db.prepare('DELETE FROM delivery_areas WHERE id = ?').bind(body.id).run();

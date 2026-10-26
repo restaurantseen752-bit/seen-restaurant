@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.0/dist/browser-image-compression.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
@@ -26,15 +27,36 @@
                 <div class="logo-container"><img src="logo.png" alt="SEEN" onerror="this.src='https://dummyimage.com/150x150/000/f39c12&text=SEEN';"></div>
                 <h2>طعم الأصالة .. بنكهة لا تقاوم</h2>
                 <p>مطعم سين / SEEN SIRT</p>
-                <div class="contact-bar">
-                    <div class="contact-item">
-                        <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
-                        <span class="contact-label">الهاتف:</span><span id="header-phone">جاري التحميل...</span>
+                <div class="contact-bar" style="background: linear-gradient(145deg, rgba(25, 25, 25, 0.9), rgba(10, 10, 10, 0.95)); border: 1px solid #f39c12; border-radius: 10px; padding: 6px 12px; width: 90%; max-width: 380px; margin: 10px auto; color: #fff; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); text-align: right; box-sizing: border-box;">
+                    <div class="info-row" style="display: flex; align-items: center; font-size: 11px; margin-bottom: 3px; color: #ddd;">
+                        <i class="fas fa-phone-alt" style="color: #f39c12; margin-left: 6px; font-size: 11px;"></i>
+                        <span style="color: #aaa; font-size: 10px; margin-left: 4px;">الهاتف:</span>
+                        <span id="header-phone" style="color: #fff; font-weight: 600;" dir="ltr">جاري التحميل...</span>
                     </div>
-                    <div class="contact-divider"></div>
-                    <div class="contact-item">
-                        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                        <span class="contact-label">العنوان:</span><span id="header-address">جاري التحميل...</span>
+                    
+                    <div class="info-row" style="display: flex; align-items: center; font-size: 11px; margin-bottom: 3px; color: #ddd;">
+                        <i class="fas fa-map-marker-alt" style="color: #f39c12; margin-left: 6px; font-size: 11px;"></i>
+                        <span style="color: #aaa; font-size: 10px; margin-left: 4px;">العنوان:</span>
+                        <span id="header-address" style="color: #fff; font-weight: 600;">جاري التحميل...</span>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; text-align: center; margin: 5px 0; color: #f39c12; font-size: 8px; opacity: 0.8;">
+                        <div style="flex: 1; border-bottom: 1px solid rgba(243, 156, 18, 0.3); margin-left: 10px;"></div>
+                        ❖
+                        <div style="flex: 1; border-bottom: 1px solid rgba(243, 156, 18, 0.3); margin-right: 10px;"></div>
+                    </div>
+                    
+                    <div style="text-align: center; color: #f39c12; font-size: 11px; font-weight: bold; margin-bottom: 6px; line-height: 1.3;">
+                        شاركونا لحظاتكم السعيدة.. تفضلوا بزيارة موقعنا على
+                    </div>
+                    
+                    <div style="display: flex; justify-content: center; gap: 10px;">
+                        <a href="https://www.facebook.com/Sseen78" target="_blank" style="display: flex; align-items: center; justify-content: center; gap: 4px; padding: 3px 12px; border-radius: 15px; text-decoration: none; color: #fff; font-size: 10px; font-weight: bold; background: linear-gradient(135deg, #1877F2, #1155cc); box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                            <i class="fab fa-facebook-f"></i> فيسبوك
+                        </a>
+                        <a href="https://www.tiktok.com/@sseen78" target="_blank" style="display: flex; align-items: center; justify-content: center; gap: 4px; padding: 3px 12px; border-radius: 15px; text-decoration: none; color: #fff; font-size: 10px; font-weight: bold; background: linear-gradient(135deg, #000, #222); border: 1px solid #444; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                            <i class="fab fa-tiktok"></i> تيك توك
+                        </a>
                     </div>
                 </div>
             </div>
