@@ -252,6 +252,7 @@ export async function onRequest(context) {
             }
             else if (body.action === 'update_setting') await db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').bind(body.key, body.value).run();
             else if (body.action === 'toggle_item') await db.prepare('UPDATE items SET is_active = ? WHERE id = ?').bind(body.is_active, body.id).run();
+            else if (body.action === 'edit_category') await db.prepare('UPDATE categories SET name = ? WHERE id = ?').bind(body.name, body.id).run();
             else if (body.action === 'toggle_category') await db.prepare('UPDATE categories SET is_active = ? WHERE name = ?').bind(body.is_active, body.name).run();
             else if (body.action === 'add_delivery_area') await db.prepare('INSERT INTO delivery_areas (name, fee) VALUES (?, ?)').bind(body.name, body.fee).run();
             else if (body.action === 'delete_delivery_area') await db.prepare('DELETE FROM delivery_areas WHERE id = ?').bind(body.id).run();

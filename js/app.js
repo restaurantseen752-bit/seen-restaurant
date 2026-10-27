@@ -1,3 +1,79 @@
+
+// --- Custom UI Modals ---
+function showCustomAlert(message, title = 'تنبيه') {
+    let modal = document.getElementById('custom-alert-modal');
+    if (modal) modal.remove();
+
+    modal = document.createElement('div');
+    modal.id = 'custom-alert-modal';
+    modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:99999; display:flex; justify-content:center; align-items:center; padding:20px; backdrop-filter: blur(5px);';
+    modal.innerHTML = `
+        <div style="background:linear-gradient(145deg, #1f1f1f, #141414); border:2px solid #f39c12; border-radius:20px; padding:25px 20px; text-align:center; max-width:350px; width:100%; box-shadow: 0 10px 30px rgba(243,156,18,0.2); animation: popIn 0.3s ease;">
+            <h3 style="color:#f39c12; margin:0 0 15px 0; font-size:20px;">${title}</h3>
+            <p style="color:#ddd; font-size:16px; margin:0 0 20px 0; line-height:1.6;">${message}</p>
+            <button onclick="document.getElementById('custom-alert-modal').remove()" style="background:#f39c12; color:#000; border:none; padding:10px 25px; border-radius:10px; font-weight:bold; font-size:16px; cursor:pointer; width:100%;">حسناً</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function showCustomConfirm(message, title = 'تأكيد') {
+    return new Promise((resolve) => {
+        let modal = document.getElementById('custom-confirm-modal');
+        if (modal) modal.remove();
+
+        modal = document.createElement('div');
+        modal.id = 'custom-confirm-modal';
+        modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:99999; display:flex; justify-content:center; align-items:center; padding:20px; backdrop-filter: blur(5px);';
+        modal.innerHTML = `
+            <div style="background:linear-gradient(145deg, #1f1f1f, #141414); border:2px solid #f39c12; border-radius:20px; padding:25px 20px; text-align:center; max-width:350px; width:100%; box-shadow: 0 10px 30px rgba(243,156,18,0.2); animation: popIn 0.3s ease;">
+                <h3 style="color:#f39c12; margin:0 0 15px 0; font-size:20px;">${title}</h3>
+                <p style="color:#ddd; font-size:16px; margin:0 0 20px 0; line-height:1.6;">${message}</p>
+                <div style="display:flex; gap:10px;">
+                    <button id="btn-custom-yes" style="background:#2ecc71; color:#fff; border:none; padding:10px; border-radius:10px; font-weight:bold; font-size:16px; cursor:pointer; flex:1;">نعم</button>
+                    <button id="btn-custom-no" style="background:#e74c3c; color:#fff; border:none; padding:10px; border-radius:10px; font-weight:bold; font-size:16px; cursor:pointer; flex:1;">إلغاء</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        document.getElementById('btn-custom-yes').onclick = () => { modal.remove(); resolve(true); };
+        document.getElementById('btn-custom-no').onclick = () => { modal.remove(); resolve(false); };
+    });
+}
+
+function showCustomPrompt(message, defaultValue = '') {
+    return new Promise((resolve) => {
+        let modal = document.getElementById('custom-prompt-modal');
+        if (modal) modal.remove();
+
+        modal = document.createElement('div');
+        modal.id = 'custom-prompt-modal';
+        modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:99999; display:flex; justify-content:center; align-items:center; padding:20px; backdrop-filter: blur(5px);';
+        modal.innerHTML = `
+            <div style="background:linear-gradient(145deg, #1f1f1f, #141414); border:2px solid #f39c12; border-radius:20px; padding:25px 20px; text-align:center; max-width:350px; width:100%; box-shadow: 0 10px 30px rgba(243,156,18,0.2); animation: popIn 0.3s ease;">
+                <h3 style="color:#f39c12; margin:0 0 15px 0; font-size:18px;">${message}</h3>
+                <input type="text" id="custom-prompt-input" value="${defaultValue}" style="width:100%; padding:12px; border-radius:8px; border:1px solid #444; background:#222; color:#fff; margin-bottom:15px; font-size:16px; box-sizing:border-box; text-align:center;">
+                <div style="display:flex; gap:10px;">
+                    <button id="btn-prompt-yes" style="background:#2ecc71; color:#fff; border:none; padding:10px; border-radius:10px; font-weight:bold; font-size:16px; cursor:pointer; flex:1;">حفظ</button>
+                    <button id="btn-prompt-no" style="background:#e74c3c; color:#fff; border:none; padding:10px; border-radius:10px; font-weight:bold; font-size:16px; cursor:pointer; flex:1;">إلغاء</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        document.getElementById('btn-prompt-yes').onclick = () => { const val = document.getElementById('custom-prompt-input').value; modal.remove(); resolve(val); };
+        document.getElementById('btn-prompt-no').onclick = () => { modal.remove(); resolve(null); };
+    });
+}
+// Add CSS animation if not exists
+if (!document.getElementById('custom-modal-style')) {
+    const style = document.createElement('style');
+    style.id = 'custom-modal-style';
+    style.innerHTML = '@keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }';
+    document.head.appendChild(style);
+}
+
 let currentSettings = {}; let allMenuItems = []; let allCategories = []; let cart = []; let deferredPrompt;
 
 const categoryImages = {
@@ -5,7 +81,8 @@ const categoryImages = {
     'البيتزا المحشية': 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&q=80',
     'السندوتشات': 'https://images.unsplash.com/photo-1561651823-34feb02250e4?w=500&q=80',
     'الوجبات': 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&q=80',
-    'البوكسات العائلية': 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=500&q=80'
+    'البوكسات العائلية': 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=500&q=80',
+    'المشروبات الغازية والعصائر': 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80'
 };
 
 function navigateTo(pageId) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById(pageId).classList.add('active'); window.scrollTo(0, 0); }
@@ -19,7 +96,7 @@ function installApp() {
     if (isIOS) { if (isChrome) { document.getElementById('ios-chrome-warning').style.display = 'block'; document.getElementById('ios-safari-steps').style.display = 'none'; } else { document.getElementById('ios-chrome-warning').style.display = 'none'; document.getElementById('ios-safari-steps').style.display = 'block'; } document.getElementById('ios-install-modal').style.display = 'flex'; } 
     else if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then((choiceResult) => { if (choiceResult.outcome === 'accepted') document.getElementById('install-banner').style.display = 'none'; deferredPrompt = null; }); }
 }
-function copyForSafari() { navigator.clipboard.writeText(window.location.href); alert('تم نسخ الرابط! افتح سفاري والصقه في شريط العنوان.'); }
+function copyForSafari() { navigator.clipboard.writeText(window.location.href); showCustomAlert('تم نسخ الرابط! افتح سفاري والصقه في شريط العنوان.'); }
 if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('service-worker.js').catch(err => console.log('SW failed: ', err)); }); }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -57,7 +134,7 @@ function renderCustomerMenu(items, categories) {
         const bgImage = categoryImages[catName] || categoryImages['البيتزا العادية'];
         
         if (!isActive) { 
-            return `<button class="accordion" onclick="alert('نعتذر منك، هذا القسم غير متوفر حالياً.')" style="background-image: url('${bgImage}');"><div class="acc-content"><span class="acc-title">${catName}</span><span class="acc-badge" style="background:#e74c3c; color:#fff; border-color:#e74c3c;">غير متوفر حالياً</span></div></button>`; 
+            return `<button class="accordion" onclick="showCustomAlert('نعتذر منك، هذا القسم غير متوفر حالياً.')" style="background-image: url('${bgImage}');"><div class="acc-content"><span class="acc-title" style="${catName.length > 15 ? 'font-size: 16px; line-height: 1.2;' : ''}">${catName}</span><span class="acc-badge" style="background:#e74c3c; color:#fff; border-color:#e74c3c;">غير متوفر حالياً</span></div></button>`; 
         }
 
         let itemsHtml = catItems.map(item => {
@@ -90,7 +167,7 @@ function renderCustomerMenu(items, categories) {
                     </div>`;
         }).join('');
         
-        return `<button class="accordion" style="background-image: url('${bgImage}');"><div class="acc-content"><span class="acc-title">${catName}</span><span class="acc-badge">افتح واختر</span></div></button><div class="panel">${catItems.length > 0 ? itemsHtml : '<div style="padding: 15px; color: #888; text-align: center;">لا توجد أصناف متاحة في هذا القسم حالياً.</div>'}</div>`;
+        return `<button class="accordion" style="background-image: url('${bgImage}');"><div class="acc-content"><span class="acc-title" style="${catName.length > 15 ? 'font-size: 16px; line-height: 1.2;' : ''}">${catName}</span><span class="acc-badge">افتح واختر</span></div></button><div class="panel">${catItems.length > 0 ? itemsHtml : '<div style="padding: 15px; color: #888; text-align: center;">لا توجد أصناف متاحة في هذا القسم حالياً.</div>'}</div>`;
     }).join('');
 
     var acc = document.getElementsByClassName("accordion");
@@ -280,21 +357,48 @@ async function compressReceiptImage(file) {
 
 
 async function sendOrder() {
-    const name = document.getElementById('customer-name').value;
-    const phone = document.getElementById('customer-phone').value.replace(/[^0-9+]/g, '');
-    const address = document.getElementById('customer-address').value;
     const notes = document.getElementById('order-notes').value;
     const paymentMethod = document.getElementById('payment-method').value;
     const receiptFile = document.getElementById('receipt-upload').files[0];
 
     if (currentSettings.status === 'closed') {
-        alert('عذراً، المطعم مغلق حالياً. ' + (currentSettings.announcement || ''));
+        showCustomAlert('عذراً، المطعم مغلق حالياً. ' + (currentSettings.announcement || ''));
         return;
     }
-    const deliverySelectVal = document.getElementById('delivery-select').value;
-    if (deliverySelectVal === "") { alert('الرجاء اختيار طريقة الاستلام (توصيل أو استلام من المطعم)'); return; }
-    if (!name || !phone || !address) { alert('الرجاء إدخال الاسم ورقم الهاتف والعنوان'); return; }
-    if (paymentMethod === 'prepayment' && !receiptFile) { alert('الرجاء رفع صورة إيصال الدفع المسبق.'); return; }
+            const deliverySelectVal = document.getElementById('delivery-select').value;
+        const nameVal = document.getElementById('customer-name').value.trim();
+        const phoneVal = document.getElementById('customer-phone').value.trim().replace(/[^0-9]/g, '');
+        const addressVal = document.getElementById('customer-address').value.trim();
+
+        const missingFields = [];
+
+        if (deliverySelectVal === "") missingFields.push("طريقة الاستلام (توصيل أو استلام)");
+        if (!nameVal) missingFields.push("الاسم الثلاثي");
+        
+        if (!phoneVal) {
+            missingFields.push("رقم الهاتف");
+        } else if (phoneVal.length !== 10) {
+            showCustomAlert('عذراً منك، رقم الهاتف يجب أن يتكون من 10 أرقام كاملة (مثال: 0912345678). يرجى مراجعة الرقم.', 'تنبيه هام');
+            return;
+        }
+
+        if (deliverySelectVal !== "0" && deliverySelectVal !== "" && !addressVal) {
+            missingFields.push("العنوان بالتفصيل");
+        }
+
+        if (missingFields.length > 0) {
+            let msg = "عذراً منك، يبدو أنك نسيت إدخال بعض البيانات الهامة لإتمام طلبك:<br><br>";
+            missingFields.forEach(f => { msg += "🔸 <strong>" + f + "</strong><br>"; });
+            msg += "<br>يرجى كتابتها لنتمكن من تجهيز طلبك بأسرع وقت.";
+            showCustomAlert(msg, 'بيانات ناقصة');
+            return;
+        }
+        
+        // Set values after validation to ensure they are correct
+        const name = nameVal;
+        const phone = phoneVal;
+        const address = addressVal;
+    if (paymentMethod === 'prepayment' && !receiptFile) { showCustomAlert('الرجاء رفع صورة إيصال الدفع المسبق.'); return; }
 
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
     const deliveryFee = parseFloat(document.getElementById('delivery-select').value) || 0;
@@ -341,10 +445,10 @@ async function sendOrder() {
             document.getElementById('receipt-upload').value = '';
         } else {
             const errData = await res.json().catch(()=>({}));
-            alert('❌ الطلب لم يصل: ' + (errData.error || 'يرجى المحاولة لاحقاً'));
+            showCustomAlert('❌ الطلب لم يصل: ' + (errData.error || 'يرجى المحاولة لاحقاً'));
         }
     } catch (e) {
-        alert('⚠️ فشل الاتصال بالإنترنت. الطلب لم يتم إرساله. يرجى المحاولة مرة أخرى أو اختيار (الدفع عند الاستلام).');
+        showCustomAlert('⚠️ فشل الاتصال بالإنترنت. الطلب لم يتم إرساله. يرجى المحاولة مرة أخرى أو اختيار (الدفع عند الاستلام).');
     } finally {
         btn.innerText = 'تأكيد الطلب'; 
         btn.disabled = false;
