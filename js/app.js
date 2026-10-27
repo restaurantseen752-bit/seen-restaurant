@@ -121,16 +121,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
 
+
 function getCategoryImage(name) {
-    if (name.includes('بيتزا محشية')) return 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&q=80';
-    if (name.includes('بيتزا')) return 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80';
+    if (name.includes('محشية')) return 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&q=80';
+    if (name.includes('عادية') || name.includes('بيتزا')) return 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80';
     if (name.includes('سندوتش')) return 'https://images.unsplash.com/photo-1561651823-34feb02250e4?w=500&q=80';
     if (name.includes('وجب')) return 'https://images.unsplash.com/photo-1544025162-d76694265947?w=500&q=80';
     if (name.includes('بوكس')) return 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=500&q=80';
-    if (name.includes('مشروب') || name.includes('عصير')) return 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80';
-    if (name.includes('معجنات') || name.includes('مخبوزات')) return 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&q=80';
-    return 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80'; // Default
+    if (name.includes('معجنات')) return 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=500&q=80';
+    if (name.includes('مشروب')) return 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80';
+    return 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80'; 
 }
+
 
 function renderCustomerMenu(items, categories) {
     const container = document.getElementById('customer-menu-container');
