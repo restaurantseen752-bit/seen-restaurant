@@ -223,13 +223,43 @@ function togglePaymentMethod() { document.getElementById('prepayment-section').s
 
 function openCart() {
     const container = document.getElementById('cart-items');
-    container.innerHTML = cart.map(item => `<div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #333; padding-bottom:8px;"><div><strong style="color:#fff;">${item.name}</strong><br><span style="color:#aaa; font-size:12px;">${item.qty} × ${item.price} د.ل</span></div><button onclick="removeFromCart('${item.id}')" style="background:#e74c3c; color:#fff; border:none; padding:4px 8px; border-radius:5px; cursor:pointer;">حذف</button></div>`).join('');
+    container.innerHTML = cart.map(item => `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #333; padding-bottom:10px;">
+            <div style="flex:1; padding-left:10px;">
+                <strong style="color:#fff; font-size:15px; display:block; margin-bottom:4px;">${item.name}</strong>
+                <span style="color:#f39c12; font-size:13px; font-weight:bold;">${item.price * item.qty} د.ل</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+                <div style="display:flex; align-items:center; background:#1a1a1a; border:1px solid #444; border-radius:8px; overflow:hidden;">
+                    <button onclick="changeQty('${item.id}', -1)" style="background:#333; color:#f39c12; border:none; width:30px; height:30px; font-size:20px; font-weight:bold; cursor:pointer; display:flex; justify-content:center; align-items:center;">-</button>
+                    <span style="color:#fff; font-weight:bold; width:30px; text-align:center; font-size:15px;">${item.qty}</span>
+                    <button onclick="changeQty('${item.id}', 1)" style="background:#333; color:#f39c12; border:none; width:30px; height:30px; font-size:20px; font-weight:bold; cursor:pointer; display:flex; justify-content:center; align-items:center;">+</button>
+                </div>
+                <button onclick="removeFromCart('${item.id}')" style="background:rgba(231,76,60,0.15); color:#e74c3c; border:1px solid #e74c3c; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">حذف</button>
+            </div>
+        </div>
+    `).join('');
     const deliverySelect = document.getElementById('delivery-select'); deliverySelect.innerHTML = '<option value="" disabled selected hidden>-- الرجاء اختيار طريقة الاستلام --</option><option value="0">الاستلام من المطعم (0.0 د.ل)</option>';
     if (currentSettings.delivery_areas) { currentSettings.delivery_areas.forEach(area => { deliverySelect.innerHTML += `<option value="${area.fee}">${area.name} (${area.fee} د.ل)</option>`; }); }
     document.getElementById('prepayment-info-text').innerText = currentSettings.prepayment_info || 'لم يتم وضع معلومات دفع.';
     updateOrderTotal(); document.getElementById('cart-modal').style.display = 'flex';
 }
 function closeCart() { document.getElementById('cart-modal').style.display = 'none'; }
+
+function changeQty(id, change) {
+    const item = cart.find(i => String(i.id) === String(id));
+    if (!item) return;
+    
+    item.qty += change;
+    
+    if (item.qty <= 0) {
+        removeFromCart(id);
+    } else {
+        updateCartUI();
+        openCart(); // Re-render the cart modal to show new quantity
+    }
+}
+
 function removeFromCart(id) { cart = cart.filter(i => String(i.id) !== String(id)); updateCartUI(); if (cart.length === 0) closeCart(); else openCart(); }
 function updateCartUI() {
     const totalItems = cart.reduce((sum, item) => sum + item.qty, 0); const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);

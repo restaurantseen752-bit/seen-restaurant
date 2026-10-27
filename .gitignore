@@ -8,3 +8,4 @@ node_modules/
 migrations/gen-hash.js
 migrations/002_insert_admin_hash.sql
 migrations/verify_hash.sh
+cf_token.txt
